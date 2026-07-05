@@ -14,7 +14,7 @@ export async function GET() {
     })
 
     const avgRating = reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      ? reviews.reduce((sum: number, r) => sum + r.rating, 0) / reviews.length
       : 0
 
     return NextResponse.json({ reviews, avgRating: Math.round(avgRating * 10) / 10, total: reviews.length })

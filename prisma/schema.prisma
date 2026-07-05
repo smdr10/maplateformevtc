@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  user
+  pro
+  admin
+}
+
+enum FuelType {
+  electric
+  hybrid
+  diesel
+  gasoline
+}
+
+enum TransmissionType {
+  automatic
+  manual
+}
+
+enum ListingType {
+  sale
+  rent
+}
+
+enum RentDuration {
+  week
+  month
+  year
+  loa
+}
+
+enum ListingStatus {
+  pending
+  active
+  sold
+  rented
+  rejected
+  expired
+}
+
+enum NotificationType {
+  new_message
+  listing_approved
+  listing_rejected
+  new_favorite
+  listing_expiring
+}
+
+model User {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String    @db.VarChar(100)
+  email               String    @unique @db.VarChar(255)
+  passwordHash        String    @map("password_hash") @db.VarChar(255)
+  phone               String?   @db.VarChar(20)
+  role                UserRole  @default(user)
+  companyName         String?   @map("company_name") @db.VarChar(150)
+  emailVerifiedAt     DateTime? @map("email_verified_at") @db.Timestamptz
+  emailVerifyToken    String?   @map("email_verify_token") @db.VarChar(255)
+  resetToken          String?   @map("reset_token") @db.VarChar(255)
+  resetTokenExpiresAt DateTime? @map("reset_token_expires_at") @db.Timestamptz
+  isSuspended         Boolean   @default(false) @map("is_suspended")
+  ratingAvg           Decimal?  @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount         Int       @default(0) @map("rating_count")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  listings         Listing[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  favorites        Favorite[]
+  notifications    Notification[]
+  reports          Report[]
+  givenReviews     Review[]       @relation("ReviewerRelation")
+  receivedReviews  Review[]       @relation("SellerRelation")
+  refreshTokens    RefreshToken[]
+  services         Service[]
+  platformReviews PlatformReview[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+
+model RefreshToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(255)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model Listing {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String        @map("user_id") @db.Uuid
+  title           String        @db.VarChar(200)
+  brand           String        @db.VarChar(50)
+  model           String        @db.VarChar(80)
+  year            Int           @db.SmallInt
+  mileage         Int
+  fuelType        FuelType      @map("fuel_type")
+  transmission    TransmissionType
+  color           String?       @db.VarChar(40)
+  seats           Int           @default(5) @db.SmallInt
+  vtcCompliant    Boolean       @default(false) @map("vtc_compliant")
+  licenseUrl      String?       @map("license_url")
+  listingType     ListingType   @map("listing_type")
+  price           Decimal       @db.Decimal(10, 2)
+  rentDuration    RentDuration? @map("rent_duration")
+  description     String
+  locationCity    String        @map("location_city") @db.VarChar(100)
+  status          ListingStatus @default(pending)
+  expiresAt       DateTime?     @map("expires_at") @db.Timestamptz
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz
+  viewsCount      Int           @default(0) @map("views_count")
+  rejectionReason String?       @map("rejection_reason")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images    ListingImage[]
+  messages  Message[]
+  favorites Favorite[]
+  reports   Report[]
+  reviews   Review[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([listingType])
+  @@index([brand])
+  @@index([price])
+  @@index([mileage])
+  @@index([year])
+  @@index([fuelType])
+  @@index([locationCity])
+  @@map("listings")
+}
+
+model ListingImage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  imageUrl  String   @map("image_url")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_images")
+}
+
+model Message {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId   String   @map("sender_id") @db.Uuid
+  receiverId String   @map("receiver_id") @db.Uuid
+  listingId  String   @map("listing_id") @db.Uuid
+  message    String
+  readStatus Boolean  @default(false) @map("read_status")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  sender   User    @relation("SentMessages",     fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver User    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([listingId])
+  @@map("messages")
+}
+
+model Favorite {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([userId])
+  @@index([listingId])
+  @@map("favorites")
+}
+
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  content   Json
+  isRead    Boolean          @default(false) @map("is_read")
+  expiresAt DateTime?        @map("expires_at") @db.Timestamptz
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model Report {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  reason    String   @db.VarChar(100)
+  comment   String?
+  status    String   @default("open") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+  @@map("reports")
+}
+
+model Review {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewerId  String   @map("reviewer_id") @db.Uuid
+  sellerId    String   @map("seller_id") @db.Uuid
+  listingId   String   @map("listing_id") @db.Uuid
+  rating      Int      @db.SmallInt
+  comment     String?
+  isVisible   Boolean  @default(true) @map("is_visible")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  reviewer User    @relation("ReviewerRelation", fields: [reviewerId], references: [id], onDelete: Cascade, map: "reviews_reviewer_fkey")
+  seller   User    @relation("SellerRelation",   fields: [sellerId],   references: [id], onDelete: Cascade, map: "reviews_seller_fkey")
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade, map: "reviews_listing_fkey")
+
+  @@unique([reviewerId, listingId])
+  @@index([sellerId])
+  @@map("reviews")
+}
+
+enum ServiceCategory {
+  maintenance
+  formation
+  insurance
+  accessories
+}
+
+model Service {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  name        String          @db.VarChar(150)
+  category    ServiceCategory
+  description String
+  city        String          @db.VarChar(100)
+  phone       String?         @db.VarChar(20)
+  email       String?         @db.VarChar(255)
+  website     String?         @db.VarChar(255)
+  imageUrl    String?         @map("image_url")
+  isVisible   Boolean         @default(true) @map("is_visible")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([city])
+  @@index([userId])
+  @@map("services")
+}
+
+model PlatformReview {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  rating    Int      @db.SmallInt
+  comment   String
+  isVisible Boolean  @default(true) @map("is_visible")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("platform_reviews")
+}

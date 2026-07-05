@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const services = await prisma.service.findMany({
       where: {
         isVisible: true,
-        ...(category && { category }),
+        ...(category && { category: category as any }),
         ...(city && { city: { contains: city, mode: 'insensitive' } }),
       },
       orderBy: { createdAt: 'desc' },

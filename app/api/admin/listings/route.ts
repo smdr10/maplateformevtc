@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status') || 'pending'
 
     const listings = await prisma.listing.findMany({
-      where: { status, deletedAt: null },
+      where: { status: status as any, deletedAt: null },
       orderBy: { createdAt: 'asc' },
       include: {
         user: { select: { id: true, name: true, email: true, role: true } },

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       where: {
         userId: user.sub,
         deletedAt: null,
-        ...(status && { status }),
+        ...(status && { status: status as any }),
       },
       orderBy: { createdAt: 'desc' },
       include: {

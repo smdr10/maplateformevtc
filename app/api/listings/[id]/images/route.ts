@@ -70,7 +70,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     })
 
     await Promise.all(
-      remaining.map((img, index) =>
+      remaining.map((img: { id: string }, index: number) =>
         prisma.listingImage.update({
           where: { id: img.id },
           data: { position: index },

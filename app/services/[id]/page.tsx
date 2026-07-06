@@ -65,13 +65,33 @@ export default function ServiceDetailPage() {
   }, [id])
 
   const sendMessage = async () => {
-    if (!message.trim()) return
-
-    if (!currentUser) {
-      router.push(`/login?redirect=/services/${id}`)
-      return
+  if (!message.trim()) return
+  if (!currentUser) {
+    router.push(`/login?redirect=/services/${id}`)
+    return
+  }
+  setSending(true)
+  setError('')
+  try {
+    const res = await fetch(`/api/services/${id}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ message }),
+    })
+    if (res.ok) {
+      setSent(true)
+      setMessage('')
+    } else {
+      const data = await res.json()
+      setError(data.message || "Erreur lors de l'envoi. Reessayez.")
     }
-
+  } catch {
+    setError("Erreur reseau. Reessayez.")
+  } finally {
+    setSending(false)
+  }
+}
     setSending(true)
     setError('')
 

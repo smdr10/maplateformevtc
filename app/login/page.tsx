@@ -30,6 +30,7 @@ function LoginForm() {
       if (!res.ok) { setError(data.message || 'Erreur de connexion'); return }
       router.push(redirect)
       router.refresh()
+      window.location.href = redirect
     } catch {
       setError('Erreur reseau, reessayez')
     } finally {

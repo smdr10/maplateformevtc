@@ -65,48 +65,22 @@ export default function ServiceDetailPage() {
   }, [id])
 
   const sendMessage = async () => {
-  if (!message.trim()) return
-  if (!currentUser) {
-    router.push(`/login?redirect=/services/${id}`)
-    return
-  }
-  setSending(true)
-  setError('')
-  try {
-    const res = await fetch(`/api/services/${id}/contact`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ message }),
-    })
-    if (res.ok) {
-      setSent(true)
-      setMessage('')
-    } else {
-      const data = await res.json()
-      setError(data.message || "Erreur lors de l'envoi. Reessayez.")
+    if (!message.trim()) return
+
+    if (!currentUser) {
+      router.push(`/login?redirect=/services/${id}`)
+      return
     }
-  } catch {
-    setError("Erreur reseau. Reessayez.")
-  } finally {
-    setSending(false)
-  }
-}
+
     setSending(true)
     setError('')
 
     try {
-      // On crée une fausse annonce ID basée sur le service pour la messagerie
-      // On utilise l'API messages avec serviceId comme listingId temporaire
-      const res = await fetch('/api/messages', {
+      const res = await fetch(`/api/services/${id}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          listingId: service?.id,
-          receiverId: service?.user.id,
-          message: `[SERVICE: ${service?.name}]\n${message}`,
-        }),
+        body: JSON.stringify({ message }),
       })
 
       if (res.ok) {
@@ -160,7 +134,7 @@ export default function ServiceDetailPage() {
 
         <div className="mt-6 pt-5 border-t border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
           {service.phone && (
-            <a href={`tel:${service.phone}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 hover:border-orange-500/20 border border-gray-700 transition-all">
+            <a href={`tel:${service.phone}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
               <span className="text-xl">📞</span>
               <div>
                 <p className="text-xs text-gray-500">Telephone</p>
@@ -169,7 +143,7 @@ export default function ServiceDetailPage() {
             </a>
           )}
           {service.email && (
-            <a href={`mailto:${service.email}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 hover:border-orange-500/20 border border-gray-700 transition-all">
+            <a href={`mailto:${service.email}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
               <span className="text-xl">✉️</span>
               <div>
                 <p className="text-xs text-gray-500">Email</p>
@@ -178,7 +152,7 @@ export default function ServiceDetailPage() {
             </a>
           )}
           {service.website && (
-            <a href={service.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 hover:border-orange-500/20 border border-gray-700 transition-all">
+            <a href={service.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
               <span className="text-xl">🌐</span>
               <div>
                 <p className="text-xs text-gray-500">Site web</p>

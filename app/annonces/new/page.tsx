@@ -27,6 +27,7 @@ export default function NewListingPage() {
     color: '', seats: '5', vtcCompliant: false,
     listingType: 'sale', price: '', rentDuration: 'month',
     description: '', locationCity: '',
+    loaAcompte: '', loaDuree: '', loaAssurance: 'non', loaAssistant: 'non', loaVehiculeRelais: 'non',
   })
 
   const update = (field: string, value: string | boolean) =>
@@ -38,11 +39,15 @@ export default function NewListingPage() {
     setError('')
     setLoading(true)
     try {
+      const finalDescription = isLOA
+        ? `CONDITIONS LOA:\n- Acompte : ${form.loaAcompte} EUR\n- Loyer mensuel : ${form.price} EUR/mois\n- Duree : ${form.loaDuree} mois\n- Assurance incluse : ${form.loaAssurance}\n- Assistant inclus : ${form.loaAssistant}\n- Vehicule de relais : ${form.loaVehiculeRelais}\n\nDESCRIPTION:\n${form.description}`
+        : form.description
+
       const res = await fetch('/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, description: finalDescription }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -192,7 +197,7 @@ export default function NewListingPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>{isLOA ? 'Loyer mensuel (EUR)' : form.listingType === 'rent' ? 'Prix location (EUR)' : 'Prix de vente (EUR)'} <span className="text-red-500">*</span></label>
-              <input type="number" value={form.price} onChange={e => update('price', e.target.value)} placeholder={isLOA ? '450' : '28500'} className={inputClass} />
+              <input type="number" value={form.price} onChange={e => update('price', e.target.value)} placeholder={isLOA ? '1500' : '28500'} className={inputClass} />
             </div>
             {form.listingType === 'rent' && !isLOA && (
               <div>
@@ -206,15 +211,56 @@ export default function NewListingPage() {
             )}
           </div>
 
+          {isLOA && (
+            <div className="space-y-4 p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl">
+              <p className="text-sm font-bold text-orange-400">Conditions LOA</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Acompte (EUR) <span className="text-red-500">*</span></label>
+                  <input type="number" value={form.loaAcompte} onChange={e => update('loaAcompte', e.target.value)} placeholder="1000" className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Duree du contrat (mois) <span className="text-red-500">*</span></label>
+                  <input type="number" value={form.loaDuree} onChange={e => update('loaDuree', e.target.value)} placeholder="48" className={inputClass} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>Assurance incluse</label>
+                  <div className="flex gap-2 mt-1">
+                    <button type="button" onClick={() => update('loaAssurance', 'oui')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaAssurance === 'oui' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Oui</button>
+                    <button type="button" onClick={() => update('loaAssurance', 'non')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaAssurance === 'non' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Non</button>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Assistant inclus</label>
+                  <div className="flex gap-2 mt-1">
+                    <button type="button" onClick={() => update('loaAssistant', 'oui')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaAssistant === 'oui' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Oui</button>
+                    <button type="button" onClick={() => update('loaAssistant', 'non')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaAssistant === 'non' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Non</button>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Vehicule de relais</label>
+                  <div className="flex gap-2 mt-1">
+                    <button type="button" onClick={() => update('loaVehiculeRelais', 'oui')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaVehiculeRelais === 'oui' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Oui</button>
+                    <button type="button" onClick={() => update('loaVehiculeRelais', 'non')} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.loaVehiculeRelais === 'non' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}>Non</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className={labelClass}>Description <span className="text-red-500">*</span></label>
-            <textarea value={form.description} onChange={e => update('description', e.target.value)} rows={6} placeholder="Decrivez l'etat du vehicule, l'historique d'entretien, les options..." className={inputClass + ' resize-none'} />
+            <textarea value={form.description} onChange={e => update('description', e.target.value)} rows={6} placeholder={isLOA ? "Decrivez le vehicule, son etat, les options incluses..." : "Decrivez l'etat du vehicule, l'historique d'entretien, les options..."} className={inputClass + ' resize-none'} />
             <p className="text-xs text-gray-500 mt-1">{form.description.length} / 2000 caracteres</p>
           </div>
 
           <div className="flex gap-3">
             <button onClick={() => setStep(1)} className="flex-1 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-700 transition-all">← Retour</button>
-            <button onClick={() => setStep(3)} disabled={!form.price || !form.description} className="flex-1 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all">Suivant →</button>
+            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all">Suivant →</button>
           </div>
         </div>
       )}
@@ -230,6 +276,13 @@ export default function NewListingPage() {
               ['Kilometrage', `${parseInt(form.mileage || '0').toLocaleString()} km`],
               ['Type', form.listingType === 'sale' ? 'Vente' : isLOA ? 'LOA' : 'Location'],
               ['Prix', `${parseFloat(form.price || '0').toLocaleString()} EUR${isLOA ? '/mois' : ''}`],
+              ...(isLOA ? [
+                ['Acompte', `${form.loaAcompte} EUR`],
+                ['Duree', `${form.loaDuree} mois`],
+                ['Assurance', form.loaAssurance],
+                ['Assistant', form.loaAssistant],
+                ['Vehicule de relais', form.loaVehiculeRelais],
+              ] : []),
               ['VTC', form.vtcCompliant ? 'Oui' : 'Non'],
               ['Ville', form.locationCity],
             ].map(([label, value]) => (

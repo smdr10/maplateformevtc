@@ -165,7 +165,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10 max-w-3xl mx-auto">
             <Link href="/annonces" className="flex-1 bg-orange-500 text-white font-bold px-6 py-4 rounded-2xl hover:bg-orange-600 transition-all hover:scale-105 text-center shadow-lg shadow-orange-500/20 whitespace-nowrap">
-              Voir les annonces
+              Voir les Vehicules
             </Link>
             <Link href="/services" className="flex-1 bg-orange-500 text-white font-bold px-6 py-4 rounded-2xl hover:bg-orange-600 transition-all hover:scale-105 text-center shadow-lg shadow-orange-500/20 whitespace-nowrap">
               Voir les services

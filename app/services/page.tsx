@@ -1,7 +1,8 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 interface Service {
   id: string
@@ -12,23 +13,7 @@ interface Service {
   phone: string | null
   email: string | null
   website: string | null
-  createdAt: string
-  user: { id: string; name: string }
-}
-
-const CATEGORIES = [
-  { value: '', label: 'Tous les services' },
-  { value: 'maintenance', label: 'Entretien & Mecanique' },
-  { value: 'formation', label: 'Formation VTC' },
-  { value: 'insurance', label: 'Assurance VTC' },
-  { value: 'accessories', label: 'Accessoires & Equipement' },
-]
-
-const CATEGORY_COLORS: Record<string, string> = {
-  maintenance: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
-  formation: 'bg-green-500/20 text-green-400 border-green-500/20',
-  insurance: 'bg-purple-500/20 text-purple-400 border-purple-500/20',
-  accessories: 'bg-orange-500/20 text-orange-400 border-orange-500/20',
+  user: { name: string }
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -38,134 +23,120 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessories: 'Accessoires & Equipement',
 }
 
-export default function ServicesPage() {
+const CATEGORY_ICONS: Record<string, string> = {
+  maintenance: '🔧',
+  formation: '🎓',
+  insurance: '🛡️',
+  accessories: '🎒',
+}
+
+const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
+  maintenance: { bg: '#EFF6FF', color: '#3B82F6' },
+  formation: { bg: '#F0FFF4', color: '#22C55E' },
+  insurance: { bg: '#F5F3FF', color: '#8B5CF6' },
+  accessories: { bg: '#FFF5F0', color: '#FF5500' },
+}
+
+function ServicesList() {
+  const searchParams = useSearchParams()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeCategory, setActiveCategory] = useState('')
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || '')
   const [city, setCity] = useState('')
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const params = new URLSearchParams()
-      if (activeCategory) params.set('category', activeCategory)
-      if (city) params.set('city', city)
-      const res = await fetch(`/api/services?${params}`)
-      const data = await res.json()
-      setServices(data.services || [])
-      setLoading(false)
-    }
-    load()
+    setLoading(true)
+    const params = new URLSearchParams()
+    if (activeCategory) params.set('category', activeCategory)
+    if (city) params.set('city', city)
+    fetch(`/api/services?${params}`)
+      .then(r => r.json())
+      .then(data => { setServices(data.services || []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [activeCategory, city])
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 min-h-screen">
-
-      <div className="mb-8 flex items-center justify-between">
+    <div className="max-w-6xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Services & Professionnels</h1>
-          <p className="text-gray-500 text-sm mt-1">Des experts pour accompagner votre activite VTC</p>
+          <h1 className="text-xl font-bold" style={{ color: '#1A1A1A' }}>Services & Professionnels</h1>
+          <p className="text-sm mt-1" style={{ color: '#888' }}>Trouvez des professionnels VTC de confiance</p>
         </div>
-        <Link href="/services/new" className="bg-orange-500 text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-orange-600 transition-all hover:scale-105">
-          + Proposer mon service
+        <Link href="/services/new" className="text-white text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-all" style={{ backgroundColor: '#FF5500' }}>
+          + Proposer un service
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.value}
-            onClick={() => setActiveCategory(cat.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
-              activeCategory === cat.value
-                ? 'bg-orange-500 text-white border-orange-500'
-                : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-orange-500/30 hover:text-white'
-            }`}
-          >
-            {cat.label}
+      {/* FILTRES CATEGORIES */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+          <button key={value} onClick={() => setActiveCategory(activeCategory === value ? '' : value)}
+            className="p-4 rounded-xl text-center transition-all hover:shadow-md"
+            style={{
+              backgroundColor: activeCategory === value ? CATEGORY_COLORS[value].bg : '#FFFFFF',
+              border: `2px solid ${activeCategory === value ? CATEGORY_COLORS[value].color : '#E8E8E8'}`,
+            }}>
+            <span className="text-2xl block mb-1">{CATEGORY_ICONS[value]}</span>
+            <p className="text-xs font-medium" style={{ color: activeCategory === value ? CATEGORY_COLORS[value].color : '#333' }}>{label}</p>
           </button>
         ))}
       </div>
 
-      <div className="flex gap-3 mb-8">
+      {/* FILTRE VILLE */}
+      <div className="mb-6">
         <input
           type="text"
-          placeholder="Filtrer par ville..."
           value={city}
           onChange={e => setCity(e.target.value)}
-          className="px-4 py-2.5 bg-gray-900 border border-gray-800 text-white rounded-xl text-sm focus:outline-none focus:border-orange-500/50 transition-all placeholder-gray-500 w-64"
+          placeholder="Filtrer par ville..."
+          className="px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:border-orange-400 transition-all"
+          style={{ backgroundColor: '#FFFFFF', borderColor: '#E8E8E8', color: '#1A1A1A', width: '200px' }}
         />
-        {city && (
-          <button onClick={() => setCity('')} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-            Effacer
-          </button>
-        )}
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-gray-900 rounded-2xl p-5 animate-pulse">
-              <div className="h-4 bg-gray-900 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-gray-900 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-900 rounded w-full" />
-            </div>
+            <div key={i} className="rounded-2xl p-5 animate-pulse" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8', height: '160px' }} />
           ))}
         </div>
       ) : services.length === 0 ? (
-        <div className="text-center py-16 bg-gray-900 rounded-2xl border border-gray-800">
-          <p className="text-gray-500 font-medium">Aucun service trouve</p>
-          <Link href="/services/new" className="inline-block mt-4 bg-orange-500 text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-orange-600 transition-all">
-            Proposer mon service
-          </Link>
+        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+          <p style={{ color: '#888' }} className="mb-2">Aucun service trouve</p>
+          <Link href="/services/new" className="text-sm font-medium" style={{ color: '#FF5500' }}>Proposer le premier service</Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map(service => (
-            <div key={service.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-500/5 transition-all flex flex-col group">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${CATEGORY_COLORS[service.category]}`}>
+            <Link key={service.id} href={`/services/${service.id}`} className="rounded-2xl p-5 transition-all hover:shadow-md group" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[service.category]?.bg || '#F8F8F8' }}>
+                  {CATEGORY_ICONS[service.category]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: CATEGORY_COLORS[service.category]?.bg, color: CATEGORY_COLORS[service.category]?.color }}>
                     {CATEGORY_LABELS[service.category]}
                   </span>
-                  <h3 className="font-semibold text-white mt-2 group-hover:text-orange-400 transition-colors">{service.name}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">📍 {service.city}</p>
+                  <p className="font-bold text-sm mt-1 truncate group-hover:text-orange-500 transition-colors" style={{ color: '#1A1A1A' }}>{service.name}</p>
                 </div>
               </div>
-
-              <p className="text-sm text-gray-400 leading-relaxed flex-1 mb-4 line-clamp-3">{service.description}</p>
-
-              <div className="space-y-1.5 mb-4">
-                {service.phone && (
-                  <a href={`tel:${service.phone}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-400 transition-colors">
-                    <span>📞</span> {service.phone}
-                  </a>
-                )}
-                {service.email && (
-                  <a href={`mailto:${service.email}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-400 transition-colors truncate">
-                    <span>✉️</span> {service.email}
-                  </a>
-                )}
-                {service.website && (
-                  <a href={service.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition-colors truncate">
-                    <span>🌐</span> Voir le site
-                  </a>
-                )}
+              <p className="text-xs mb-3 line-clamp-2" style={{ color: '#888' }}>{service.description}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs" style={{ color: '#AAA' }}>📍 {service.city}</p>
+                <p className="text-xs font-medium" style={{ color: '#FF5500' }}>Voir →</p>
               </div>
-
-              <div className="pt-3 border-t border-gray-800 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-600">Par {service.user.name}</p>
-                  <p className="text-xs text-orange-500 font-semibold">SM Drivers</p>
-                </div>
-                <Link href={`/services/${service.id}`} className="text-xs px-3 py-1.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all font-medium hover:scale-105">
-                  Contacter
-                </Link>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F8F8', color: '#888' }}>Chargement...</div>}>
+      <ServicesList />
+    </Suspense>
   )
 }

@@ -28,7 +28,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   maintenance: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
   formation: 'bg-green-500/20 text-green-400 border-green-500/20',
   insurance: 'bg-purple-500/20 text-purple-400 border-purple-500/20',
-  accessories: 'bg-orange-500/20 text-orange-400 border-orange-500/20',
+  accessories: 'bg-[#FF5500]/20 text-[#FF6620] border-[#FF5500]/20',
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -103,7 +103,7 @@ export default function ServiceDetailPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <p className="text-gray-500">Service introuvable</p>
-        <Link href="/services" className="text-orange-500 text-sm mt-2 inline-block hover:underline">
+        <Link href="/services" className="text-[#FF5500] text-sm mt-2 inline-block hover:underline">
           Retour aux services
         </Link>
       </div>
@@ -112,13 +112,13 @@ export default function ServiceDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 min-h-screen">
-      <Link href="/services" className="text-sm text-gray-500 hover:text-orange-500 mb-6 inline-flex items-center gap-1">
+      <Link href="/services" className="text-sm text-gray-500 hover:text-[#FF5500] mb-6 inline-flex items-center gap-1">
         ← Retour aux services
       </Link>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+      <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6 mb-4">
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center text-2xl flex-shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-[#FF5500]/10 flex items-center justify-center text-2xl flex-shrink-0">
             {CATEGORY_ICONS[service.category]}
           </div>
           <div className="flex-1">
@@ -132,9 +132,9 @@ export default function ServiceDetailPage() {
 
         <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">{service.description}</p>
 
-        <div className="mt-6 pt-5 border-t border-gray-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="mt-6 pt-5 border-t border-[#1A1A2E] grid grid-cols-1 sm:grid-cols-3 gap-3">
           {service.phone && (
-            <a href={`tel:${service.phone}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
+            <a href={`tel:${service.phone}`} className="flex items-center gap-2 p-3 bg-[#16161F] rounded-xl hover:bg-gray-700 border border-[#22223A] transition-all">
               <span className="text-xl">📞</span>
               <div>
                 <p className="text-xs text-gray-500">Telephone</p>
@@ -143,7 +143,7 @@ export default function ServiceDetailPage() {
             </a>
           )}
           {service.email && (
-            <a href={`mailto:${service.email}`} className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
+            <a href={`mailto:${service.email}`} className="flex items-center gap-2 p-3 bg-[#16161F] rounded-xl hover:bg-gray-700 border border-[#22223A] transition-all">
               <span className="text-xl">✉️</span>
               <div>
                 <p className="text-xs text-gray-500">Email</p>
@@ -152,26 +152,26 @@ export default function ServiceDetailPage() {
             </a>
           )}
           {service.website && (
-            <a href={service.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-gray-800 rounded-xl hover:bg-gray-700 border border-gray-700 transition-all">
+            <a href={service.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-[#16161F] rounded-xl hover:bg-gray-700 border border-[#22223A] transition-all">
               <span className="text-xl">🌐</span>
               <div>
                 <p className="text-xs text-gray-500">Site web</p>
-                <p className="text-sm font-medium text-orange-400">Visiter le site</p>
+                <p className="text-sm font-medium text-[#FF6620]">Visiter le site</p>
               </div>
             </a>
           )}
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">
+          <div className="w-10 h-10 rounded-full bg-[#FF5500]/20 flex items-center justify-center text-[#FF6620] font-bold">
             {service.user.name.charAt(0).toUpperCase()}
           </div>
           <div>
             <p className="font-semibold text-white text-sm">{service.user.name}</p>
             <p className="text-xs text-gray-500">Prestataire de service</p>
-            <p className="text-xs text-orange-500 font-semibold">SM Drivers</p>
+            <p className="text-xs text-[#FF5500] font-semibold">SM Drivers</p>
           </div>
         </div>
 
@@ -188,12 +188,12 @@ export default function ServiceDetailPage() {
               onChange={e => setMessage(e.target.value)}
               placeholder="Bonjour, je suis interesse par vos services..."
               rows={4}
-              className="w-full text-sm bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500/50 transition-all resize-none placeholder-gray-600"
+              className="w-full text-sm bg-[#16161F] border border-[#22223A] text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#FF5500]/50 transition-all resize-none placeholder-gray-600"
             />
             <button
               onClick={sendMessage}
               disabled={sending || !message.trim()}
-              className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all hover:scale-[1.02]"
+              className="w-full bg-[#FF5500] text-white py-2.5 rounded-xl text-sm font-bold hover:bg-[#E04A00] disabled:opacity-50 transition-all hover:scale-[1.02]"
             >
               {sending ? 'Envoi...' : currentUser ? 'Contacter ce professionnel' : 'Se connecter pour contacter'}
             </button>

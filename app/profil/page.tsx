@@ -1,23 +1,16 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface User {
   id: string
   name: string
   email: string
   phone: string | null
-  role: string
   companyName: string | null
-}
-
-interface Stats {
-  totalViews: number
-  totalFavorites: number
-  totalContacts: number
-  byStatus: Record<string, number>
+  role: string
 }
 
 interface Listing {
@@ -25,208 +18,238 @@ interface Listing {
   title: string
   brand: string
   model: string
+  year: number
   price: number
-  listingType: string
   status: string
+  listingType: string
+  rentDuration: string | null
   locationCity: string
+  createdAt: string
   images: { imageUrl: string }[]
-  _count: { favorites: number; messages: number }
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  active:  { label: 'Active',     color: 'bg-green-500/20 text-green-400 border border-green-500/20' },
-  pending: { label: 'En attente', color: 'bg-orange-500/20 text-orange-400 border border-orange-500/20' },
-  sold:    { label: 'Vendu',      color: 'bg-gray-500/20 text-gray-400 border border-gray-500/20' },
-  rented:  { label: 'Loue',       color: 'bg-gray-500/20 text-gray-400 border border-gray-500/20' },
-  rejected:{ label: 'Refuse',     color: 'bg-red-500/20 text-red-400 border border-red-500/20' },
-  expired: { label: 'Expire',     color: 'bg-gray-500/20 text-gray-400 border border-gray-500/20' },
+interface Stats {
+  totalViews: number
+  totalContacts: number
+  totalFavorites: number
+  totalListings: number
 }
 
 export default function ProfilPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [stats, setStats] = useState<Stats | null>(null)
   const [listings, setListings] = useState<Listing[]>([])
-  const [activeTab, setActiveTab] = useState('all')
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('all')
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', phone: '', companyName: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    const load = async () => {
-      const meRes = await fetch('/api/auth/me', { credentials: 'include' })
-      if (!meRes.ok) { router.push('/login?redirect=/profil'); return }
-      const meData = await meRes.json()
+    Promise.all([
+      fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/profile/listings', { credentials: 'include' }).then(r => r.json()),
+      fetch('/api/profile/stats', { credentials: 'include' }).then(r => r.json()),
+    ]).then(([meData, listingsData, statsData]) => {
+      if (!meData?.user) { router.push('/login?redirect=/profil'); return }
       setUser(meData.user)
       setEditForm({ name: meData.user.name, phone: meData.user.phone || '', companyName: meData.user.companyName || '' })
-      const [statsRes, listingsRes] = await Promise.all([
-        fetch('/api/profile/stats', { credentials: 'include' }),
-        fetch('/api/profile/listings', { credentials: 'include' }),
-      ])
-      setStats(await statsRes.json())
-      const listingsData = await listingsRes.json()
       setListings(listingsData.listings || [])
+      setStats(statsData)
       setLoading(false)
-    }
-    load()
+    }).catch(() => router.push('/login'))
   }, [router])
-
-  const filteredListings = listings.filter(l => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'active') return l.status === 'active'
-    if (activeTab === 'pending') return l.status === 'pending'
-    if (activeTab === 'archived') return ['sold','rented','expired','rejected'].includes(l.status)
-    return true
-  })
-
-  const markAsSoldOrRented = async (id: string, listingType: string) => {
-    const status = listingType === 'sale' ? 'sold' : 'rented'
-    const res = await fetch(`/api/listings/${id}/status`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ status }),
-    })
-    if (res.ok) setListings(prev => prev.map(l => l.id === id ? { ...l, status } : l))
-  }
-
-  const deleteListing = async (id: string) => {
-    if (!confirm('Supprimer cette annonce ?')) return
-    const res = await fetch(`/api/listings/${id}`, { method: 'DELETE', credentials: 'include' })
-    if (res.ok) setListings(prev => prev.filter(l => l.id !== id))
-  }
 
   const saveProfile = async () => {
     setSaving(true)
     const res = await fetch('/api/profile/update', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify(editForm),
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(editForm),
     })
-    if (res.ok) { const data = await res.json(); setUser(data.user); setEditing(false) }
+    if (res.ok) {
+      const data = await res.json()
+      setUser(data.user)
+      setEditing(false)
+    }
     setSaving(false)
   }
 
-  if (loading) return <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">Chargement...</div>
-  if (!user) return null
+  const deleteListing = async (id: string) => {
+    if (!confirm('Supprimer cette annonce ?')) return
+    await fetch(`/api/listings/${id}`, { method: 'DELETE', credentials: 'include' })
+    setListings(prev => prev.filter(l => l.id !== id))
+  }
+
+  const filteredListings = activeTab === 'all' ? listings
+    : activeTab === 'active' ? listings.filter(l => l.status === 'active')
+    : activeTab === 'pending' ? listings.filter(l => l.status === 'pending')
+    : listings.filter(l => ['sold', 'rented', 'rejected', 'expired'].includes(l.status))
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F8F8' }}>
+      <div style={{ color: '#888' }}>Chargement...</div>
+    </div>
+  )
+
+  const inputStyle = { backgroundColor: '#F8F8F8', borderColor: '#E8E8E8', color: '#1A1A1A' }
+  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:border-orange-400 transition-all"
+
+  const statusColors: Record<string, { bg: string; color: string; label: string }> = {
+    active: { bg: '#F0FFF4', color: '#22C55E', label: 'Active' },
+    pending: { bg: '#FFFBEB', color: '#F59E0B', label: 'En attente' },
+    sold: { bg: '#EFF6FF', color: '#3B82F6', label: 'Vendue' },
+    rented: { bg: '#EFF6FF', color: '#3B82F6', label: 'Louee' },
+    rejected: { bg: '#FFF0F0', color: '#EF4444', label: 'Rejetee' },
+    expired: { bg: '#F8F8F8', color: '#888', label: 'Expiree' },
+  }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 min-h-screen">
+    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex items-start gap-4">
-        <div className="w-14 h-14 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-xl flex-shrink-0">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <p className="text-lg font-bold text-white">{user.name}</p>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/20 font-medium">
-              {user.role === 'pro' ? 'Pro' : user.role === 'admin' ? 'Admin' : 'Chauffeur VTC'}
-            </span>
-          </div>
-          <p className="text-sm text-gray-500">{user.email}</p>
-          {user.phone && <p className="text-sm text-gray-500">{user.phone}</p>}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {!editing ? (
-            <button onClick={() => setEditing(true)} className="mt-3 text-sm text-orange-500 hover:text-orange-400 font-medium transition-colors">
-              Modifier mes informations
-            </button>
-          ) : (
-            <div className="mt-4 space-y-3 max-w-sm">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Nom</label>
-                <input type="text" value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all" />
+        {/* PROFIL */}
+        <div className="space-y-4">
+          <div className="rounded-2xl p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl" style={{ backgroundColor: '#FF5500' }}>
+                {user?.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Telephone</label>
-                <input type="tel" value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all" />
+                <p className="font-bold" style={{ color: '#1A1A1A' }}>{user?.name}</p>
+                <p className="text-sm" style={{ color: '#888' }}>{user?.email}</p>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#FFF5F0', color: '#FF5500' }}>
+                  {user?.role === 'admin' ? 'Administrateur' : user?.role === 'pro' ? 'Professionnel' : 'Chauffeur VTC'}
+                </span>
               </div>
-              {user.role === 'pro' && (
+            </div>
+
+            {editing ? (
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Nom entreprise</label>
-                  <input type="text" value={editForm.companyName} onChange={e => setEditForm(p => ({ ...p, companyName: e.target.value }))} className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 transition-all" />
+                  <label className="text-xs font-medium mb-1 block" style={{ color: '#888' }}>Nom</label>
+                  <input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} className={inputClass} style={inputStyle} />
                 </div>
-              )}
-              <div className="flex gap-2">
-                <button onClick={() => setEditing(false)} className="px-4 py-1.5 text-sm bg-gray-900 border border-gray-800 rounded-lg text-gray-400 hover:bg-gray-800 transition-all">Annuler</button>
-                <button onClick={saveProfile} disabled={saving} className="px-4 py-1.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-all">
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-                </button>
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: '#888' }}>Telephone</label>
+                  <input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} style={inputStyle} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: '#888' }}>Entreprise</label>
+                  <input value={editForm.companyName} onChange={e => setEditForm(p => ({ ...p, companyName: e.target.value }))} className={inputClass} style={inputStyle} />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setEditing(false)} className="flex-1 py-2 rounded-xl text-sm transition-all" style={{ backgroundColor: '#F8F8F8', border: '1px solid #E8E8E8', color: '#888' }}>Annuler</button>
+                  <button onClick={saveProfile} disabled={saving} className="flex-1 py-2 rounded-xl text-sm text-white font-medium disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
+                    {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setEditing(true)} className="w-full py-2 rounded-xl text-sm transition-all hover:border-orange-300" style={{ backgroundColor: '#F8F8F8', border: '1px solid #E8E8E8', color: '#555' }}>
+                Modifier mon profil
+              </button>
+            )}
+          </div>
+
+          {stats && (
+            <div className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+              <p className="font-bold text-sm mb-3" style={{ color: '#1A1A1A' }}>Mes statistiques</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Annonces', value: stats.totalListings },
+                  { label: 'Vues', value: stats.totalViews },
+                  { label: 'Contacts', value: stats.totalContacts },
+                  { label: 'Favoris', value: stats.totalFavorites },
+                ].map(s => (
+                  <div key={s.label} className="text-center p-3 rounded-xl" style={{ backgroundColor: '#F8F8F8' }}>
+                    <p className="text-xl font-black" style={{ color: '#FF5500' }}>{s.value}</p>
+                    <p className="text-xs" style={{ color: '#888' }}>{s.label}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {stats && (
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { value: stats.totalViews, label: 'Vues totales' },
-            { value: stats.totalContacts, label: 'Contacts recus' },
-            { value: (stats.byStatus.active || 0) + (stats.byStatus.pending || 0), label: 'Annonces actives' },
-            { value: stats.totalFavorites, label: 'Favoris recus' },
-          ].map((stat, i) => (
-            <div key={i} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div>
-        <div className="flex gap-1 mb-4 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
-          {[
-            ['all', `Toutes (${listings.length})`],
-            ['active', `Actives (${listings.filter(l => l.status === 'active').length})`],
-            ['pending', `En attente (${listings.filter(l => l.status === 'pending').length})`],
-            ['archived', `Archivees (${listings.filter(l => ['sold','rented','expired','rejected'].includes(l.status)).length})`],
-          ].map(([key, label]) => (
-            <button key={key} onClick={() => setActiveTab(key)} className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-all ${activeTab === key ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-white'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {filteredListings.length === 0 ? (
-          <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800">
-            <p className="text-gray-500">Aucune annonce dans cette categorie</p>
-            <Link href="/annonces/new" className="text-orange-500 text-sm font-medium hover:underline mt-2 inline-block">
-              Publier une annonce
-            </Link>
+          <div className="rounded-2xl p-5 space-y-2" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <p className="font-bold text-sm mb-3" style={{ color: '#1A1A1A' }}>Navigation rapide</p>
+            {[
+              { href: '/messages', label: 'Mes messages' },
+              { href: '/favoris', label: 'Mes favoris' },
+              { href: '/annonces/new', label: 'Publier une annonce' },
+              { href: '/avis', label: 'Laisser un avis' },
+            ].map(item => (
+              <Link key={item.href} href={item.href} className="flex items-center justify-between p-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors" style={{ color: '#333' }}>
+                {item.label}
+                <span style={{ color: '#CCC' }}>→</span>
+              </Link>
+            ))}
           </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredListings.map(listing => {
-              const statusInfo = STATUS_LABELS[listing.status] || STATUS_LABELS.pending
-              return (
-                <div key={listing.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4 items-center hover:border-gray-800 transition-all">
-                  <div className="w-16 h-12 rounded-lg bg-gray-900 overflow-hidden flex-shrink-0">
+        </div>
+
+        {/* MES ANNONCES */}
+        <div className="lg:col-span-2">
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <div className="p-5" style={{ borderBottom: '1px solid #F0F0F0' }}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold" style={{ color: '#1A1A1A' }}>Mes annonces</h2>
+                <Link href="/annonces/new" className="text-sm font-medium text-white px-3 py-1.5 rounded-xl" style={{ backgroundColor: '#FF5500' }}>+ Nouvelle</Link>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { v: 'all', l: 'Toutes' },
+                  { v: 'active', l: 'Actives' },
+                  { v: 'pending', l: 'En attente' },
+                  { v: 'archived', l: 'Archivees' },
+                ].map(tab => (
+                  <button key={tab.v} onClick={() => setActiveTab(tab.v)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                    style={{ backgroundColor: activeTab === tab.v ? '#FF5500' : '#F8F8F8', color: activeTab === tab.v ? '#FFFFFF' : '#888', border: activeTab === tab.v ? 'none' : '1px solid #E8E8E8' }}>
+                    {tab.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="divide-y" style={{ borderColor: '#F0F0F0' }}>
+              {filteredListings.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-sm" style={{ color: '#888' }}>Aucune annonce</p>
+                  <Link href="/annonces/new" className="text-sm font-medium mt-2 inline-block" style={{ color: '#FF5500' }}>Publier ma premiere annonce</Link>
+                </div>
+              ) : filteredListings.map(listing => (
+                <div key={listing.id} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
+                  <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#F0F0F0' }}>
                     {listing.images[0] ? (
                       <img src={listing.images[0].imageUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-700 text-xs">N/A</div>
+                      <div className="w-full h-full flex items-center justify-center" style={{ color: '#CCC' }}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-white truncate">{listing.title}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${statusInfo.color}`}>{statusInfo.label}</span>
+                    <p className="font-medium text-sm truncate" style={{ color: '#1A1A1A' }}>{listing.title}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#888' }}>{listing.year} · {listing.locationCity}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: statusColors[listing.status]?.bg, color: statusColors[listing.status]?.color }}>
+                        {statusColors[listing.status]?.label}
+                      </span>
+                      <span className="font-bold text-sm" style={{ color: '#FF5500' }}>{parseFloat(listing.price.toString()).toLocaleString()} EUR</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">{parseFloat(listing.price.toString()).toLocaleString()} EUR · {listing.locationCity} · {listing._count.favorites} favoris · {listing._count.messages} messages</p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Link href={`/annonces/${listing.id}`} className="text-xs px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all">Voir</Link>
-                    {listing.status === 'active' && (
-                      <button onClick={() => markAsSoldOrRented(listing.id, listing.listingType)} className="text-xs px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all">
-                        {listing.listingType === 'sale' ? 'Vendu' : 'Loue'}
-                      </button>
-                    )}
-                    <button onClick={() => deleteListing(listing.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">Supprimer</button>
+                  <div className="flex flex-col gap-1">
+                    <Link href={`/annonces/${listing.id}`} className="text-xs px-2 py-1 rounded-lg text-center transition-all" style={{ backgroundColor: '#F8F8F8', border: '1px solid #E8E8E8', color: '#555' }}>Voir</Link>
+                    <button onClick={() => deleteListing(listing.id)} className="text-xs px-2 py-1 rounded-lg transition-all" style={{ backgroundColor: '#FFF0F0', color: '#EF4444' }}>Suppr.</button>
                   </div>
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

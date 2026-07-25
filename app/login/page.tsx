@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
@@ -28,8 +28,6 @@ function LoginForm() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.message || 'Erreur de connexion'); return }
-      router.push(redirect)
-      router.refresh()
       window.location.href = redirect
     } catch {
       setError('Erreur reseau, reessayez')
@@ -38,49 +36,36 @@ function LoginForm() {
     }
   }
 
+  const inputStyle = { backgroundColor: '#F8F8F8', borderColor: '#E8E8E8', color: '#1A1A1A' }
+  const inputClass = "w-full px-4 py-3 border rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:border-orange-400 transition-all"
+
   return (
-    <div className="w-full max-w-md relative z-10">
+    <div className="w-full max-w-md">
       <div className="text-center mb-8">
-        <Link href="/" className="text-2xl font-black text-orange-500">MaPlateformeVTC</Link>
-        <p className="text-gray-500 text-sm mt-2">Bon retour parmi nous</p>
+        <Link href="/" className="text-2xl font-black" style={{ color: '#FF5500' }}>MaPlateformeVTC</Link>
+        <p className="text-sm mt-2" style={{ color: '#888' }}>Bon retour parmi nous</p>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-        <h1 className="text-xl font-bold text-white mb-6">Se connecter</h1>
+      <div className="rounded-2xl p-8" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <h1 className="text-xl font-bold mb-6" style={{ color: '#1A1A1A' }}>Se connecter</h1>
 
         {error && (
-          <div className="mb-5 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
+          <div className="mb-5 p-3 rounded-xl text-sm text-red-500" style={{ backgroundColor: '#FFF0F0', border: '1px solid #FFD0D0' }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              placeholder="thomas@email.fr"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all"
-            />
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="thomas@email.fr" className={inputClass} style={inputStyle} />
           </div>
 
           <div>
-            <div className="flex justify-between items-baseline mb-1.5">
-              <label className="block text-sm font-medium text-gray-400">Mot de passe</label>
-            </div>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>Mot de passe</label>
             <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-all pr-12"
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className={inputClass + ' pr-12'} style={inputStyle} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors" style={{ color: '#AAA' }}>
                 {showPassword ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                 ) : (
@@ -91,22 +76,18 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-orange-500" />
-            <label htmlFor="rememberMe" className="text-sm text-gray-400">Se souvenir de moi (30 jours)</label>
+            <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-4 h-4 rounded" style={{ accentColor: '#FF5500' }} />
+            <label htmlFor="rememberMe" className="text-sm" style={{ color: '#888' }}>Se souvenir de moi (30 jours)</label>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 text-white py-3.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all hover:scale-[1.02] shadow-lg shadow-orange-500/20 mt-2"
-          >
+          <button type="submit" disabled={loading} className="w-full text-white py-3.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90 mt-2" style={{ backgroundColor: '#FF5500' }}>
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="mt-6 text-center text-sm" style={{ color: '#888' }}>
           Pas encore de compte ?{' '}
-          <Link href="/register" className="text-orange-500 font-medium hover:text-orange-400 transition-colors">
+          <Link href="/register" className="font-medium hover:opacity-80 transition-colors" style={{ color: '#FF5500' }}>
             Creer un compte
           </Link>
         </div>
@@ -117,9 +98,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent pointer-events-none" />
-      <Suspense fallback={<div className="text-gray-400">Chargement...</div>}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#F8F8F8' }}>
+      <Suspense fallback={<div style={{ color: '#888' }}>Chargement...</div>}>
         <LoginForm />
       </Suspense>
     </div>

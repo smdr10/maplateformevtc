@@ -91,9 +91,9 @@ export default function AnnonceDetailPage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse">
-        <div className="h-80 bg-gray-800 rounded-2xl mb-6" />
-        <div className="h-8 bg-gray-800 rounded w-2/3 mb-4" />
-        <div className="h-4 bg-gray-800 rounded w-1/3" />
+        <div className="h-80 bg-[#16161F] rounded-2xl mb-6" />
+        <div className="h-8 bg-[#16161F] rounded w-2/3 mb-4" />
+        <div className="h-4 bg-[#16161F] rounded w-1/3" />
       </div>
     )
   }
@@ -102,7 +102,7 @@ export default function AnnonceDetailPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
         <p className="text-gray-500 text-lg">Annonce introuvable</p>
-        <Link href="/annonces" className="text-orange-500 text-sm mt-2 inline-block hover:underline">
+        <Link href="/annonces" className="text-[#FF5500] text-sm mt-2 inline-block hover:underline">
           Retour aux annonces
         </Link>
       </div>
@@ -115,7 +115,7 @@ export default function AnnonceDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen">
-      <Link href="/annonces" className="text-sm text-gray-500 hover:text-orange-500 mb-4 inline-flex items-center gap-1">
+      <Link href="/annonces" className="text-sm text-gray-500 hover:text-[#FF5500] mb-4 inline-flex items-center gap-1">
         ← Retour aux annonces
       </Link>
 
@@ -123,8 +123,8 @@ export default function AnnonceDetailPage() {
 
         <div className="lg:col-span-2 space-y-4">
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-            <div className="relative h-72 bg-gray-800">
+          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl overflow-hidden">
+            <div className="relative h-72 bg-[#16161F]">
               {listing.images.length > 0 ? (
                 <img src={listing.images[currentImage]?.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
               ) : (
@@ -136,10 +136,10 @@ export default function AnnonceDetailPage() {
               )}
             </div>
             {listing.images.length > 1 && (
-              <div className="flex gap-2 p-3 overflow-x-auto bg-gray-900">
+              <div className="flex gap-2 p-3 overflow-x-auto bg-[#111118]">
                 {listing.images.map((img, i) => (
                   <button key={img.id} onClick={() => setCurrentImage(i)}
-                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${currentImage === i ? 'border-orange-500' : 'border-gray-700'}`}>
+                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${currentImage === i ? 'border-[#FF5500]' : 'border-[#22223A]'}`}>
                     <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -147,23 +147,23 @@ export default function AnnonceDetailPage() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
             <div className="flex gap-2 mb-3">
               {listing.vtcCompliant && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/20 font-medium">VTC certifie</span>}
-              <span className={`text-xs px-2 py-1 rounded-full font-medium border ${listing.listingType === 'sale' ? 'bg-blue-500/20 text-blue-400 border-blue-500/20' : listing.rentDuration === 'loa' ? 'bg-purple-500/20 text-purple-400 border-purple-500/20' : 'bg-orange-500/20 text-orange-400 border-orange-500/20'}`}>
+              <span className={`text-xs px-2 py-1 rounded-full font-medium border ${listing.listingType === 'sale' ? 'bg-blue-500/20 text-blue-400 border-blue-500/20' : listing.rentDuration === 'loa' ? 'bg-purple-500/20 text-purple-400 border-purple-500/20' : 'bg-[#FF5500]/20 text-[#FF6620] border-[#FF5500]/20'}`}>
                 {listing.listingType === 'sale' ? 'Vente' : listing.rentDuration === 'loa' ? 'LOA' : 'Location'}
               </span>
               {listing.user.role === 'pro' && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 font-medium">Pro</span>}
             </div>
             <h1 className="text-2xl font-bold text-white mb-1">{listing.title}</h1>
             <p className="text-gray-500 text-sm mb-4">{listing.locationCity} · Publie le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
-            <p className="text-3xl font-black text-orange-400">
+            <p className="text-3xl font-black text-[#FF6620]">
               {parseFloat(listing.price.toString()).toLocaleString()} EUR
               {listing.listingType === 'rent' && <span className="text-lg font-normal text-gray-500"> /{listing.rentDuration === 'week' ? 'semaine' : listing.rentDuration === 'year' ? 'an' : listing.rentDuration === 'loa' ? 'mois (LOA)' : 'mois'}</span>}
             </p>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
             <h2 className="font-bold text-white mb-4">Informations vehicule</h2>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -184,16 +184,16 @@ export default function AnnonceDetailPage() {
             </div>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
             <h2 className="font-bold text-white mb-3">Description</h2>
             <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{listing.description}</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 sticky top-20">
+          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-5 sticky top-20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">
+              <div className="w-10 h-10 rounded-full bg-[#FF5500]/20 flex items-center justify-center text-[#FF6620] font-bold">
                 {listing.user.name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -213,12 +213,12 @@ export default function AnnonceDetailPage() {
                   onChange={e => setMessage(e.target.value)}
                   placeholder="Bonjour, je suis interesse par votre annonce..."
                   rows={4}
-                  className="w-full text-sm bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500/50 transition-all resize-none placeholder-gray-600"
+                  className="w-full text-sm bg-[#16161F] border border-[#22223A] text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#FF5500]/50 transition-all resize-none placeholder-gray-600"
                 />
                 <button
                   onClick={sendMessage}
                   disabled={sendingMessage || !message.trim()}
-                  className="w-full bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all hover:scale-[1.02]"
+                  className="w-full bg-[#FF5500] text-white py-2.5 rounded-xl text-sm font-bold hover:bg-[#E04A00] disabled:opacity-50 transition-all hover:scale-[1.02]"
                 >
                   {sendingMessage ? 'Envoi...' : 'Contacter le vendeur'}
                 </button>
@@ -228,12 +228,12 @@ export default function AnnonceDetailPage() {
             <button
               onClick={toggleFavorite}
               disabled={favLoading}
-              className={`mt-3 w-full py-2 rounded-xl text-sm font-medium border transition-all ${isFavorite ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700'}`}
+              className={`mt-3 w-full py-2 rounded-xl text-sm font-medium border transition-all ${isFavorite ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700'}`}
             >
               {favLoading ? '...' : isFavorite ? '♥ Retire des favoris' : '♡ Ajouter aux favoris'}
             </button>
 
-            <div className="mt-4 pt-4 border-t border-gray-800 text-center">
+            <div className="mt-4 pt-4 border-t border-[#1A1A2E] text-center">
               <p className="text-xs text-gray-600">{listing._count.favorites} favori(s) · {listing._count.messages} message(s)</p>
             </div>
           </div>

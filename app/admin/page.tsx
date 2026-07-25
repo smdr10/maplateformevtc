@@ -152,18 +152,18 @@ export default function AdminPage() {
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 min-h-screen">
 
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard Admin</h1>
+        <h1 className="text-2xl font-bold text">Dashboard Admin</h1>
         <p className="text-sm text-gray-500">Vue generale et moderation de la plateforme</p>
       </div>
 
       {stats && (
         <div className="grid grid-cols-5 gap-3">
           {[
-            { value: stats.totalUsers, label: 'Utilisateurs', color: 'text-white', bg: 'bg-gray-900 border-gray-800' },
-            { value: stats.totalListings, label: 'Annonces totales', color: 'text-white', bg: 'bg-gray-900 border-gray-800' },
-            { value: stats.pendingCount, label: 'En attente', color: 'text-orange-400', bg: 'bg-orange-500/5 border-orange-500/20' },
-            { value: stats.activeCount, label: 'Actives', color: 'text-green-400', bg: 'bg-gray-900 border-gray-800' },
-            { value: reviews.length, label: 'Avis recus', color: 'text-white', bg: 'bg-gray-900 border-gray-800' },
+            { value: stats.totalUsers, label: 'Utilisateurs', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
+            { value: stats.totalListings, label: 'Annonces totales', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
+            { value: stats.pendingCount, label: 'En attente', color: 'text-[#FF6620]', bg: 'bg-[#FF5500]/5 border-[#FF5500]/20' },
+            { value: stats.activeCount, label: 'Actives', color: 'text-green-400', bg: 'bg-[#111118] border-[#1A1A2E]' },
+            { value: reviews.length, label: 'Avis recus', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
           ].map((stat, i) => (
             <div key={i} className={`${stat.bg} border rounded-2xl p-4`}>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -173,14 +173,14 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
-        <button onClick={() => setActiveTab('listings')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'listings' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-white'}`}>
+      <div className="flex gap-1 bg-[#111118] border border-[#1A1A2E] rounded-xl p-1 w-fit">
+        <button onClick={() => setActiveTab('listings')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'listings' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
           Annonces ({pending.length})
         </button>
-        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'services' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-white'}`}>
+        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'services' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
           Services ({services.length})
         </button>
-        <button onClick={() => setActiveTab('reviews')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'reviews' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-white'}`}>
+        <button onClick={() => setActiveTab('reviews')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'reviews' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
           Avis ({reviews.length})
         </button>
       </div>
@@ -189,19 +189,19 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <h2 className="font-bold text-white">File de moderation</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/20 font-medium">{pending.length} en attente</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#FF5500]/20 text-[#FF6620] border border-[#FF5500]/20 font-medium">{pending.length} en attente</span>
           </div>
 
           {pending.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800">
+            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
               <p className="text-gray-500">Aucune annonce en attente</p>
             </div>
           ) : (
             <div className="space-y-3">
               {pending.map(listing => (
-                <div key={listing.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all">
+                <div key={listing.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 hover:border-[#22223A] transition-all">
                   <div className="flex gap-4 items-start">
-                    <div className="w-16 h-12 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-12 rounded-lg bg-[#16161F] overflow-hidden flex-shrink-0">
                       {listing.images[0] ? (
                         <img src={listing.images[0].imageUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -225,8 +225,8 @@ export default function AdminPage() {
                     </div>
                   </div>
                   {rejectingId === listing.id && (
-                    <div className="mt-3 pt-3 border-t border-gray-800 flex gap-2">
-                      <input type="text" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif du rejet..." className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-orange-500/50 placeholder-gray-600 transition-all" />
+                    <div className="mt-3 pt-3 border-t border-[#1A1A2E] flex gap-2">
+                      <input type="text" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif du rejet..." className="flex-1 px-3 py-2 bg-[#16161F] border border-[#22223A] rounded-lg text-white text-sm focus:outline-none focus:border-[#FF5500]/50 placeholder-gray-600 transition-all" />
                       <button onClick={() => reject(listing.id)} className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/20 text-sm rounded-lg hover:bg-red-500/30 transition-all">Confirmer</button>
                     </div>
                   )}
@@ -241,16 +241,16 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white">Gestion des services</h2>
-            <Link href="/services" className="text-sm text-orange-500 hover:text-orange-400 transition-colors">Voir la page publique</Link>
+            <Link href="/services" className="text-sm text-[#FF5500] hover:text-[#FF6620] transition-colors">Voir la page publique</Link>
           </div>
           {services.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800">
+            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
               <p className="text-gray-500">Aucun service publie</p>
             </div>
           ) : (
             <div className="space-y-3">
               {services.map(service => (
-                <div key={service.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4 hover:border-gray-700 transition-all">
+                <div key={service.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 flex items-center gap-4 hover:border-[#22223A] transition-all">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <p className="text-sm font-medium text-white">{service.name}</p>
@@ -261,8 +261,8 @@ export default function AdminPage() {
                     <p className="text-xs text-gray-500">{CATEGORY_LABELS[service.category]} · {service.city} · par {service.user.name}</p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <Link href={`/services/${service.id}`} className="text-xs px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white transition-all">Voir</Link>
-                    <button onClick={() => toggleServiceVisibility(service.id, service.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${service.isVisible ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
+                    <Link href={`/services/${service.id}`} className="text-xs px-3 py-1.5 bg-[#16161F] border border-[#22223A] rounded-lg text-gray-400 hover:text-white transition-all">Voir</Link>
+                    <button onClick={() => toggleServiceVisibility(service.id, service.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${service.isVisible ? 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
                       {service.isVisible ? 'Masquer' : 'Afficher'}
                     </button>
                     <button onClick={() => deleteService(service.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">Supprimer</button>
@@ -278,16 +278,16 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white">Gestion des avis</h2>
-            <Link href="/avis" className="text-sm text-orange-500 hover:text-orange-400 transition-colors">Voir la page publique</Link>
+            <Link href="/avis" className="text-sm text-[#FF5500] hover:text-[#FF6620] transition-colors">Voir la page publique</Link>
           </div>
           {reviews.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800">
+            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
               <p className="text-gray-500">Aucun avis pour le moment</p>
             </div>
           ) : (
             <div className="space-y-3">
               {reviews.map(review => (
-                <div key={review.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all">
+                <div key={review.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 hover:border-[#22223A] transition-all">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -295,7 +295,7 @@ export default function AdminPage() {
                         <span className="text-xs text-gray-500">({review.user.email})</span>
                         <div className="flex gap-0.5">
                           {[1,2,3,4,5].map(s => (
-                            <span key={s} className={`text-xs ${s <= review.rating ? 'text-orange-400' : 'text-gray-700'}`}>★</span>
+                            <span key={s} className={`text-xs ${s <= review.rating ? 'text-[#FF6620]' : 'text-gray-700'}`}>★</span>
                           ))}
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${review.isVisible ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-gray-500/20 text-gray-400 border-gray-500/20'}`}>
@@ -306,7 +306,7 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-600 mt-1">{new Date(review.createdAt).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => toggleReviewVisibility(review.id, review.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${review.isVisible ? 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
+                      <button onClick={() => toggleReviewVisibility(review.id, review.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${review.isVisible ? 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
                         {review.isVisible ? 'Masquer' : 'Afficher'}
                       </button>
                       <button onClick={() => deleteReview(review.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">

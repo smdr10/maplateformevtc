@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -13,11 +13,24 @@ const CATEGORIES = [
 
 export default function NewServicePage() {
   const router = useRouter()
+  const [authChecked, setAuthChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '', category: '', description: '', city: '', phone: '', email: '', website: '',
   })
+
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => {
+        if (!r.ok) {
+          router.push('/login?redirect=/services/new')
+        } else {
+          setAuthChecked(true)
+        }
+      })
+      .catch(() => router.push('/login?redirect=/services/new'))
+  }, [router])
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
 
@@ -49,26 +62,35 @@ export default function NewServicePage() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500/50 transition-all"
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0A0F' }}>
+        <div className="text-gray-500">Verification...</div>
+      </div>
+    )
+  }
+
+  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputStyle = { backgroundColor: '#111118', borderColor: '#1A1A2E' }
   const labelClass = "block text-sm font-medium text-gray-400 mb-1"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/services" className="text-sm text-gray-500 hover:text-orange-500">← Retour aux services</Link>
+        <Link href="/services" className="text-sm text-gray-500 hover:text-white transition-colors">← Retour aux services</Link>
         <h1 className="text-2xl font-bold text-white mt-3">Proposer mon service</h1>
         <p className="text-gray-500 text-sm mt-1">Creez votre fiche professionnelle et soyez contacte par des chauffeurs VTC</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">{error}</div>
+        <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
       )}
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
+      <div className="rounded-2xl p-6 space-y-5" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
 
         <div>
           <label className={labelClass}>Nom de votre service / entreprise <span className="text-red-500">*</span></label>
-          <input type="text" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Ex: Garage Auto Pro, Formation VTC Paris..." className={inputClass} />
+          <input type="text" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Ex: Garage Auto Pro, Formation VTC Paris..." className={inputClass} style={inputStyle} />
         </div>
 
         <div>
@@ -76,10 +98,11 @@ export default function NewServicePage() {
           <div className="grid grid-cols-2 gap-3">
             {CATEGORIES.map(cat => (
               <button key={cat.value} type="button" onClick={() => update('category', cat.value)}
-                className={`p-3 rounded-xl border-2 text-left transition-all ${form.category === cat.value ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600 bg-gray-800'}`}>
+                className="p-3 rounded-xl border-2 text-left transition-all"
+                style={{ borderColor: form.category === cat.value ? '#FF5500' : '#1A1A2E', backgroundColor: form.category === cat.value ? '#1A0800' : '#0A0A0F' }}>
                 <span className="text-xl block mb-1">{cat.icon}</span>
                 <p className="text-sm font-medium text-white">{cat.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{cat.desc}</p>
+                <p className="text-xs mt-0.5 text-gray-500">{cat.desc}</p>
               </button>
             ))}
           </div>
@@ -87,36 +110,36 @@ export default function NewServicePage() {
 
         <div>
           <label className={labelClass}>Description de vos services <span className="text-red-500">*</span></label>
-          <textarea value={form.description} onChange={e => update('description', e.target.value)} placeholder="Decrivez vos services, votre experience, vos tarifs, vos specialites..." rows={5} className={inputClass + ' resize-none'} />
-          <p className="text-xs text-gray-500 mt-1">{form.description.length} caracteres</p>
+          <textarea value={form.description} onChange={e => update('description', e.target.value)} placeholder="Decrivez vos services, votre experience, vos tarifs, vos specialites..." rows={5} className={inputClass + ' resize-none'} style={inputStyle} />
+          <p className="text-xs text-gray-600 mt-1">{form.description.length} caracteres</p>
         </div>
 
         <div>
           <label className={labelClass}>Ville <span className="text-red-500">*</span></label>
-          <input type="text" value={form.city} onChange={e => update('city', e.target.value)} placeholder="Paris, Lyon, Marseille..." className={inputClass} />
+          <input type="text" value={form.city} onChange={e => update('city', e.target.value)} placeholder="Paris, Lyon, Marseille..." className={inputClass} style={inputStyle} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Telephone</label>
-            <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+33 6 12 34 56 78" className={inputClass} />
+            <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+33 6 12 34 56 78" className={inputClass} style={inputStyle} />
           </div>
           <div>
             <label className={labelClass}>Email professionnel</label>
-            <input type="email" value={form.email} onChange={e => update('email', e.target.value)} placeholder="contact@monservice.fr" className={inputClass} />
+            <input type="email" value={form.email} onChange={e => update('email', e.target.value)} placeholder="contact@monservice.fr" className={inputClass} style={inputStyle} />
           </div>
         </div>
 
         <div>
           <label className={labelClass}>Site web</label>
-          <input type="url" value={form.website} onChange={e => update('website', e.target.value)} placeholder="https://monservice.fr" className={inputClass} />
+          <input type="url" value={form.website} onChange={e => update('website', e.target.value)} placeholder="https://monservice.fr" className={inputClass} style={inputStyle} />
         </div>
 
         <div className="pt-2 flex gap-3">
-          <Link href="/services" className="flex-1 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-700 transition-all text-center">
+          <Link href="/services" className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-400 text-center transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
             Annuler
           </Link>
-          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 bg-orange-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-orange-600 disabled:opacity-50 transition-all hover:scale-[1.02]">
+          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
             {loading ? 'Publication...' : 'Publier ma fiche'}
           </button>
         </div>

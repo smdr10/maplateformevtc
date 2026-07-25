@@ -39,6 +39,11 @@ export default function AnnonceDetailPage() {
   const [message, setMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const [messageSent, setMessageSent] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportSent, setReportSent] = useState(false)
+  const [reportError, setReportError] = useState('')
 
   useEffect(() => {
     fetch(`/api/listings/${id}`)
@@ -88,21 +93,48 @@ export default function AnnonceDetailPage() {
     setSendingMessage(false)
   }
 
+  const submitReport = async () => {
+    if (!reportReason.trim()) return
+    setReportLoading(true)
+    setReportError('')
+    const res = await fetch(`/api/listings/${id}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reason: reportReason }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setReportSent(true)
+      setTimeout(() => {
+        setShowReportModal(false)
+        setReportSent(false)
+        setReportReason('')
+      }, 2000)
+    } else {
+      if (res.status === 401) {
+        router.push(`/login?redirect=/annonces/${id}`)
+      } else {
+        setReportError(data.message || 'Erreur lors du signalement')
+      }
+    }
+    setReportLoading(false)
+  }
+
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse">
-        <div className="h-80 bg-[#16161F] rounded-2xl mb-6" />
-        <div className="h-8 bg-[#16161F] rounded w-2/3 mb-4" />
-        <div className="h-4 bg-[#16161F] rounded w-1/3" />
+      <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse" style={{ backgroundColor: '#F8F8F8' }}>
+        <div className="h-80 rounded-2xl mb-6" style={{ backgroundColor: '#E8E8E8' }} />
+        <div className="h-8 rounded w-2/3 mb-4" style={{ backgroundColor: '#E8E8E8' }} />
       </div>
     )
   }
 
   if (!listing) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <p className="text-gray-500 text-lg">Annonce introuvable</p>
-        <Link href="/annonces" className="text-[#FF5500] text-sm mt-2 inline-block hover:underline">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center" style={{ backgroundColor: '#F8F8F8' }}>
+        <p className="text-gray-400 text-lg">Annonce introuvable</p>
+        <Link href="/annonces" className="text-sm mt-2 inline-block hover:underline" style={{ color: '#FF5500' }}>
           Retour aux annonces
         </Link>
       </div>
@@ -114,21 +146,83 @@ export default function AnnonceDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen">
-      <Link href="/annonces" className="text-sm text-gray-500 hover:text-[#FF5500] mb-4 inline-flex items-center gap-1">
+    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
+
+      {/* MODAL SIGNALEMENT */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div className="w-full max-w-md rounded-2xl p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            {reportSent ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-3">✅</div>
+                <p className="font-bold" style={{ color: '#1A1A1A' }}>Signalement envoye !</p>
+                <p className="text-sm mt-1" style={{ color: '#888' }}>Notre equipe va examiner cette annonce.</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold" style={{ color: '#1A1A1A' }}>Signaler cette annonce</h3>
+                  <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+
+                <p className="text-sm mb-4" style={{ color: '#888' }}>Pourquoi signalez-vous cette annonce ?</p>
+
+                <div className="space-y-2 mb-4">
+                  {[
+                    'Annonce frauduleuse ou arnaque',
+                    'Prix abusif ou trompeur',
+                    'Photos ne correspondant pas au vehicule',
+                    'Informations incorrectes ou mensongeres',
+                    'Vehicule deja vendu',
+                    'Contenu inapproprie',
+                    'Autre raison',
+                  ].map(reason => (
+                    <button key={reason} onClick={() => setReportReason(reason)}
+                      className="w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all"
+                      style={{
+                        backgroundColor: reportReason === reason ? '#FFF5F0' : '#F8F8F8',
+                        border: `1px solid ${reportReason === reason ? '#FF5500' : '#E8E8E8'}`,
+                        color: reportReason === reason ? '#FF5500' : '#333',
+                      }}>
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+
+                {reportError && (
+                  <p className="text-sm text-red-500 mb-3">{reportError}</p>
+                )}
+
+                <div className="flex gap-2">
+                  <button onClick={() => setShowReportModal(false)} className="flex-1 py-2.5 rounded-xl text-sm transition-all" style={{ backgroundColor: '#F8F8F8', border: '1px solid #E8E8E8', color: '#888' }}>
+                    Annuler
+                  </button>
+                  <button onClick={submitReport} disabled={reportLoading || !reportReason} className="flex-1 py-2.5 rounded-xl text-sm text-white font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
+                    {reportLoading ? 'Envoi...' : 'Signaler'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Link href="/annonces" className="text-sm mb-4 inline-flex items-center gap-1 hover:text-orange-500 transition-colors" style={{ color: '#888' }}>
         ← Retour aux annonces
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
 
+        {/* COLONNE GAUCHE */}
         <div className="lg:col-span-2 space-y-4">
 
-          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl overflow-hidden">
-            <div className="relative h-72 bg-[#16161F]">
+          {/* GALERIE */}
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <div className="relative h-72" style={{ backgroundColor: '#F0F0F0' }}>
               {listing.images.length > 0 ? (
                 <img src={listing.images[currentImage]?.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-600">
+                <div className="w-full h-full flex items-center justify-center" style={{ color: '#CCC' }}>
                   <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
@@ -136,10 +230,11 @@ export default function AnnonceDetailPage() {
               )}
             </div>
             {listing.images.length > 1 && (
-              <div className="flex gap-2 p-3 overflow-x-auto bg-[#111118]">
+              <div className="flex gap-2 p-3 overflow-x-auto" style={{ backgroundColor: '#FAFAFA' }}>
                 {listing.images.map((img, i) => (
                   <button key={img.id} onClick={() => setCurrentImage(i)}
-                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${currentImage === i ? 'border-[#FF5500]' : 'border-[#22223A]'}`}>
+                    className="flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors"
+                    style={{ borderColor: currentImage === i ? '#FF5500' : '#E8E8E8' }}>
                     <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -147,24 +242,25 @@ export default function AnnonceDetailPage() {
             )}
           </div>
 
-          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
-            <div className="flex gap-2 mb-3">
-              {listing.vtcCompliant && <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/20 font-medium">VTC certifie</span>}
-              <span className={`text-xs px-2 py-1 rounded-full font-medium border ${listing.listingType === 'sale' ? 'bg-blue-500/20 text-blue-400 border-blue-500/20' : listing.rentDuration === 'loa' ? 'bg-purple-500/20 text-purple-400 border-purple-500/20' : 'bg-[#FF5500]/20 text-[#FF6620] border-[#FF5500]/20'}`}>
+          {/* TITRE & PRIX */}
+          <div className="rounded-2xl p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <div className="flex gap-2 mb-3 flex-wrap">
+              {listing.vtcCompliant && <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: '#F0FFF4', color: '#22C55E', border: '1px solid #BBF7D0' }}>VTC certifie</span>}
+              <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: listing.listingType === 'sale' ? '#EFF6FF' : listing.rentDuration === 'loa' ? '#F5F3FF' : '#FFF5F0', color: listing.listingType === 'sale' ? '#3B82F6' : listing.rentDuration === 'loa' ? '#8B5CF6' : '#FF5500', border: `1px solid ${listing.listingType === 'sale' ? '#BFDBFE' : listing.rentDuration === 'loa' ? '#DDD6FE' : '#FFD0B0'}` }}>
                 {listing.listingType === 'sale' ? 'Vente' : listing.rentDuration === 'loa' ? 'LOA' : 'Location'}
               </span>
-              {listing.user.role === 'pro' && <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 font-medium">Pro</span>}
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">{listing.title}</h1>
-            <p className="text-gray-500 text-sm mb-4">{listing.locationCity} · Publie le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
-            <p className="text-3xl font-black text-[#FF6620]">
+            <h1 className="text-2xl font-bold mb-1" style={{ color: '#1A1A1A' }}>{listing.title}</h1>
+            <p className="text-sm mb-4" style={{ color: '#888' }}>{listing.locationCity} · Publie le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
+            <p className="text-3xl font-black" style={{ color: '#FF5500' }}>
               {parseFloat(listing.price.toString()).toLocaleString()} EUR
-              {listing.listingType === 'rent' && <span className="text-lg font-normal text-gray-500"> /{listing.rentDuration === 'week' ? 'semaine' : listing.rentDuration === 'year' ? 'an' : listing.rentDuration === 'loa' ? 'mois (LOA)' : 'mois'}</span>}
+              {listing.listingType === 'rent' && <span className="text-lg font-normal" style={{ color: '#888' }}> /{listing.rentDuration === 'week' ? 'semaine' : listing.rentDuration === 'year' ? 'an' : listing.rentDuration === 'loa' ? 'mois (LOA)' : 'mois'}</span>}
             </p>
           </div>
 
-          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
-            <h2 className="font-bold text-white mb-4">Informations vehicule</h2>
+          {/* INFOS VEHICULE */}
+          <div className="rounded-2xl p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <h2 className="font-bold mb-4" style={{ color: '#1A1A1A' }}>Informations vehicule</h2>
             <div className="grid grid-cols-2 gap-4">
               {[
                 ['Marque', listing.brand],
@@ -176,34 +272,43 @@ export default function AnnonceDetailPage() {
                 ['Couleur', listing.color || 'Non precise'],
                 ['Places', listing.seats.toString()],
               ].map(([label, value]) => (
-                <div key={label} className="flex flex-col">
-                  <span className="text-xs text-gray-500">{label}</span>
-                  <span className="text-sm font-medium text-white">{value}</span>
+                <div key={label}>
+                  <span className="text-xs" style={{ color: '#AAA' }}>{label}</span>
+                  <p className="text-sm font-medium mt-0.5" style={{ color: '#1A1A1A' }}>{value}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-6">
-            <h2 className="font-bold text-white mb-3">Description</h2>
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{listing.description}</p>
+          {/* DESCRIPTION */}
+          <div className="rounded-2xl p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
+            <h2 className="font-bold mb-3" style={{ color: '#1A1A1A' }}>Description</h2>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#555' }}>{listing.description}</p>
+          </div>
+
+          {/* BOUTON SIGNALER */}
+          <div className="text-center">
+            <button onClick={() => setShowReportModal(true)} className="text-xs hover:underline transition-colors" style={{ color: '#CCC' }}>
+              🚩 Signaler cette annonce
+            </button>
           </div>
         </div>
 
+        {/* COLONNE DROITE */}
         <div className="space-y-4">
-          <div className="bg-[#111118] border border-[#1A1A2E] rounded-2xl p-5 sticky top-20">
+          <div className="rounded-2xl p-5 sticky top-24" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E8E8' }}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#FF5500]/20 flex items-center justify-center text-[#FF6620] font-bold">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: '#FF5500' }}>
                 {listing.user.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-white text-sm">{listing.user.companyName || listing.user.name}</p>
-                <p className="text-xs text-gray-500">Membre depuis {new Date(listing.user.createdAt).getFullYear()}</p>
+                <p className="font-semibold text-sm" style={{ color: '#1A1A1A' }}>{listing.user.companyName || listing.user.name}</p>
+                <p className="text-xs" style={{ color: '#888' }}>Membre depuis {new Date(listing.user.createdAt).getFullYear()}</p>
               </div>
             </div>
 
             {messageSent ? (
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-sm text-green-400 text-center">
+              <div className="p-3 rounded-xl text-sm text-center" style={{ backgroundColor: '#F0FFF4', border: '1px solid #BBF7D0', color: '#22C55E' }}>
                 Message envoye ! Le vendeur vous repondra bientot.
               </div>
             ) : (
@@ -213,12 +318,14 @@ export default function AnnonceDetailPage() {
                   onChange={e => setMessage(e.target.value)}
                   placeholder="Bonjour, je suis interesse par votre annonce..."
                   rows={4}
-                  className="w-full text-sm bg-[#16161F] border border-[#22223A] text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#FF5500]/50 transition-all resize-none placeholder-gray-600"
+                  className="w-full text-sm rounded-xl px-3 py-2.5 focus:outline-none transition-all resize-none"
+                  style={{ backgroundColor: '#F8F8F8', border: '1px solid #E8E8E8', color: '#1A1A1A' }}
                 />
                 <button
                   onClick={sendMessage}
                   disabled={sendingMessage || !message.trim()}
-                  className="w-full bg-[#FF5500] text-white py-2.5 rounded-xl text-sm font-bold hover:bg-[#E04A00] disabled:opacity-50 transition-all hover:scale-[1.02]"
+                  className="w-full text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#FF5500' }}
                 >
                   {sendingMessage ? 'Envoi...' : 'Contacter le vendeur'}
                 </button>
@@ -228,13 +335,18 @@ export default function AnnonceDetailPage() {
             <button
               onClick={toggleFavorite}
               disabled={favLoading}
-              className={`mt-3 w-full py-2 rounded-xl text-sm font-medium border transition-all ${isFavorite ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700'}`}
+              className="mt-3 w-full py-2 rounded-xl text-sm font-medium transition-all"
+              style={{
+                backgroundColor: isFavorite ? '#FFF0F0' : '#F8F8F8',
+                border: `1px solid ${isFavorite ? '#FFD0D0' : '#E8E8E8'}`,
+                color: isFavorite ? '#EF4444' : '#555',
+              }}
             >
               {favLoading ? '...' : isFavorite ? '♥ Retire des favoris' : '♡ Ajouter aux favoris'}
             </button>
 
-            <div className="mt-4 pt-4 border-t border-[#1A1A2E] text-center">
-              <p className="text-xs text-gray-600">{listing._count.favorites} favori(s) · {listing._count.messages} message(s)</p>
+            <div className="mt-4 pt-4 text-center" style={{ borderTop: '1px solid #F0F0F0' }}>
+              <p className="text-xs" style={{ color: '#AAA' }}>{listing._count.favorites} favori(s) · {listing._count.messages} message(s)</p>
             </div>
           </div>
         </div>

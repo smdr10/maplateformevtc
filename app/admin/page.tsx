@@ -2,26 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
-interface Stats {
-  totalUsers: number
-  totalListings: number
-  pendingCount: number
-  activeCount: number
-  totalMessages: number
-}
-
-interface PendingListing {
+interface Listing {
   id: string
   title: string
   brand: string
   model: string
+  year: number
   price: number
+  status: string
   listingType: string
+  locationCity: string
   createdAt: string
-  user: { id: string; name: string; email: string; role: string }
-  images: { imageUrl: string }[]
+  user: { name: string; email: string }
+  images?: { imageUrl: string }[]
 }
 
 interface Service {
@@ -31,7 +25,7 @@ interface Service {
   city: string
   isVisible: boolean
   createdAt: string
-  user: { id: string; name: string; email: string }
+  user: { name: string }
 }
 
 interface Review {
@@ -40,287 +34,312 @@ interface Review {
   comment: string
   isVisible: boolean
   createdAt: string
-  user: { id: string; name: string; email: string; role: string }
+  user: { name: string }
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  maintenance: 'Entretien & Mecanique',
-  formation: 'Formation VTC',
-  insurance: 'Assurance VTC',
-  accessories: 'Accessoires & Equipement',
+interface Report {
+  id: string
+  reason: string
+  createdAt: string
+  listing: { id: string; title: string; status: string }
+  reporter: { name: string; email: string }
+}
+
+interface Stats {
+  totalUsers: number
+  totalListings: number
+  pendingListings: number
+  activeListings: number
+  totalReviews: number
 }
 
 export default function AdminPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'listings' | 'services' | 'reviews'>('listings')
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [pending, setPending] = useState<PendingListing[]>([])
+  const [activeTab, setActiveTab] = useState('listings')
+  const [listings, setListings] = useState<Listing[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
+  const [reports, setReports] = useState<Report[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [forbidden, setForbidden] = useState(false)
-  const [rejectingId, setRejectingId] = useState<string | null>(null)
+  const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
   useEffect(() => {
-    const load = async () => {
-      const meRes = await fetch('/api/auth/me', { credentials: 'include' })
-      if (!meRes.ok) { router.push('/login?redirect=/admin'); return }
-      const meData = await meRes.json()
-      if (meData.user.role !== 'admin') { setForbidden(true); setLoading(false); return }
-
-      const [statsRes, pendingRes, servicesRes, reviewsRes] = await Promise.all([
-        fetch('/api/admin/stats', { credentials: 'include' }),
-        fetch('/api/admin/listings?status=pending', { credentials: 'include' }),
-        fetch('/api/admin/services', { credentials: 'include' }),
-        fetch('/api/admin/reviews', { credentials: 'include' }),
-      ])
-
-      setStats(await statsRes.json())
-      const pendingData = await pendingRes.json()
-      setPending(pendingData.listings || [])
-      const servicesData = await servicesRes.json()
-      setServices(servicesData.services || [])
-      const reviewsData = await reviewsRes.json()
-      setReviews(reviewsData.reviews || [])
-      setLoading(false)
-    }
-    load()
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.user || data.user.role !== 'admin') { router.push('/'); return }
+        return Promise.all([
+          fetch('/api/admin/listings', { credentials: 'include' }).then(r => r.json()),
+          fetch('/api/admin/services', { credentials: 'include' }).then(r => r.json()),
+          fetch('/api/admin/reviews', { credentials: 'include' }).then(r => r.json()),
+          fetch('/api/admin/stats', { credentials: 'include' }).then(r => r.json()),
+          fetch('/api/admin/reports', { credentials: 'include' }).then(r => r.json()),
+        ])
+      })
+      .then(results => {
+        if (!results) return
+        const [listingsData, servicesData, reviewsData, statsData, reportsData] = results
+        setListings(listingsData.listings || [])
+        setServices(servicesData.services || [])
+        setReviews(reviewsData.reviews || [])
+        setStats(statsData)
+        setReports(reportsData.reports || [])
+        setLoading(false)
+      })
+      .catch(() => router.push('/'))
   }, [router])
 
-  const approve = async (id: string) => {
-    const res = await fetch(`/api/admin/listings/${id}/approve`, { method: 'PATCH', credentials: 'include' })
-    if (res.ok) {
-      setPending(prev => prev.filter(l => l.id !== id))
-      if (stats) setStats({ ...stats, pendingCount: stats.pendingCount - 1, activeCount: stats.activeCount + 1 })
-    }
+  const approveListing = async (id: string) => {
+    await fetch(`/api/admin/listings/${id}/approve`, { method: 'PATCH', credentials: 'include' })
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'active' } : l))
   }
 
-  const reject = async (id: string) => {
-    const res = await fetch(`/api/admin/listings/${id}/reject`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ reason: rejectReason }),
+  const rejectListing = async (id: string) => {
+    await fetch(`/api/admin/listings/${id}/reject`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ reason: rejectReason }),
     })
-    if (res.ok) {
-      setPending(prev => prev.filter(l => l.id !== id))
-      if (stats) setStats({ ...stats, pendingCount: stats.pendingCount - 1 })
-      setRejectingId(null)
-      setRejectReason('')
-    }
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'rejected' } : l))
+    setRejectId(null)
+    setRejectReason('')
   }
 
-  const toggleServiceVisibility = async (id: string, isVisible: boolean) => {
-    const res = await fetch(`/api/admin/services/${id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ isVisible: !isVisible }),
+  const toggleService = async (id: string, isVisible: boolean) => {
+    await fetch(`/api/admin/services/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ isVisible: !isVisible }),
     })
-    if (res.ok) setServices(prev => prev.map(s => s.id === id ? { ...s, isVisible: !isVisible } : s))
+    setServices(prev => prev.map(s => s.id === id ? { ...s, isVisible: !isVisible } : s))
   }
 
-  const deleteService = async (id: string) => {
-    if (!confirm('Supprimer ce service ?')) return
-    const res = await fetch(`/api/admin/services/${id}`, { method: 'DELETE', credentials: 'include' })
-    if (res.ok) setServices(prev => prev.filter(s => s.id !== id))
-  }
-
-  const toggleReviewVisibility = async (id: string, isVisible: boolean) => {
-    const res = await fetch(`/api/admin/reviews/${id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ isVisible: !isVisible }),
+  const toggleReview = async (id: string, isVisible: boolean) => {
+    await fetch(`/api/admin/reviews/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ isVisible: !isVisible }),
     })
-    if (res.ok) setReviews(prev => prev.map(r => r.id === id ? { ...r, isVisible: !isVisible } : r))
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, isVisible: !isVisible } : r))
   }
 
   const deleteReview = async (id: string) => {
     if (!confirm('Supprimer cet avis ?')) return
-    const res = await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE', credentials: 'include' })
-    if (res.ok) setReviews(prev => prev.filter(r => r.id !== id))
+    await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE', credentials: 'include' })
+    setReviews(prev => prev.filter(r => r.id !== id))
   }
 
-  if (loading) return <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">Chargement...</div>
+  const deleteReport = async (id: string) => {
+    if (!confirm('Ignorer ce signalement ?')) return
+    setReports(prev => prev.filter(r => r.id !== id))
+  }
 
-  if (forbidden) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <p className="text-red-400 font-medium">Acces refuse</p>
-        <p className="text-sm text-gray-600 mt-1">Cette page est reservee aux administrateurs.</p>
-      </div>
-    )
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0A0F' }}>
+      <div style={{ color: '#666' }}>Chargement...</div>
+    </div>
+  )
+
+  const pendingListings = listings.filter(l => l.status === 'pending')
+
+  const statusColors: Record<string, { bg: string; color: string; label: string }> = {
+    pending: { bg: '#2A1F00', color: '#F59E0B', label: 'En attente' },
+    active: { bg: '#001A0A', color: '#22C55E', label: 'Active' },
+    rejected: { bg: '#1A0000', color: '#EF4444', label: 'Rejetee' },
+    sold: { bg: '#001020', color: '#3B82F6', label: 'Vendue' },
+    rented: { bg: '#001020', color: '#3B82F6', label: 'Louee' },
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: '#0A0A0F' }}>
+      <div className="max-w-6xl mx-auto px-4 py-8">
 
-      <div>
-        <h1 className="text-2xl font-bold text">Dashboard Admin</h1>
-        <p className="text-sm text-gray-500">Vue generale et moderation de la plateforme</p>
-      </div>
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-black" style={{ color: '#FF5500' }}>Dashboard Admin</h1>
+            <p className="text-sm mt-1" style={{ color: '#666' }}>MaPlateformeVTC — Panneau de controle</p>
+          </div>
+        </div>
 
-      {stats && (
-        <div className="grid grid-cols-5 gap-3">
+        {/* STATS */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+            {[
+              { label: 'Utilisateurs', value: stats.totalUsers, icon: '👥' },
+              { label: 'Annonces', value: stats.totalListings, icon: '🚗' },
+              { label: 'En attente', value: stats.pendingListings, icon: '⏳', highlight: true },
+              { label: 'Actives', value: stats.activeListings, icon: '✅' },
+              { label: 'Signalements', value: reports.length, icon: '🚩', highlight: reports.length > 0 },
+            ].map(s => (
+              <div key={s.label} className="rounded-2xl p-4 text-center" style={{ backgroundColor: s.highlight ? '#1A0800' : '#111118', border: `1px solid ${s.highlight ? '#3A1500' : '#1A1A2E'}` }}>
+                <p className="text-xl mb-1">{s.icon}</p>
+                <p className="text-2xl font-black" style={{ color: s.highlight ? '#FF5500' : '#FFFFFF' }}>{s.value}</p>
+                <p className="text-xs mt-1" style={{ color: '#666' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ONGLETS */}
+        <div className="flex gap-2 mb-5 flex-wrap">
           {[
-            { value: stats.totalUsers, label: 'Utilisateurs', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
-            { value: stats.totalListings, label: 'Annonces totales', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
-            { value: stats.pendingCount, label: 'En attente', color: 'text-[#FF6620]', bg: 'bg-[#FF5500]/5 border-[#FF5500]/20' },
-            { value: stats.activeCount, label: 'Actives', color: 'text-green-400', bg: 'bg-[#111118] border-[#1A1A2E]' },
-            { value: reviews.length, label: 'Avis recus', color: 'text-white', bg: 'bg-[#111118] border-[#1A1A2E]' },
-          ].map((stat, i) => (
-            <div key={i} className={`${stat.bg} border rounded-2xl p-4`}>
-              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
-            </div>
+            { v: 'listings', l: `Annonces${pendingListings.length > 0 ? ` (${pendingListings.length})` : ''}` },
+            { v: 'services', l: 'Services' },
+            { v: 'reviews', l: 'Avis' },
+            { v: 'reports', l: `Signalements${reports.length > 0 ? ` (${reports.length})` : ''}` },
+          ].map(tab => (
+            <button key={tab.v} onClick={() => setActiveTab(tab.v)}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              style={{
+                backgroundColor: activeTab === tab.v ? '#FF5500' : '#111118',
+                color: activeTab === tab.v ? '#FFFFFF' : '#666',
+                border: activeTab === tab.v ? 'none' : '1px solid #1A1A2E'
+              }}>
+              {tab.l}
+            </button>
           ))}
         </div>
-      )}
 
-      <div className="flex gap-1 bg-[#111118] border border-[#1A1A2E] rounded-xl p-1 w-fit">
-        <button onClick={() => setActiveTab('listings')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'listings' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
-          Annonces ({pending.length})
-        </button>
-        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'services' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
-          Services ({services.length})
-        </button>
-        <button onClick={() => setActiveTab('reviews')} className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === 'reviews' ? 'bg-[#FF5500] text-white' : 'text-gray-500 hover:text-white'}`}>
-          Avis ({reviews.length})
-        </button>
-      </div>
-
-      {activeTab === 'listings' && (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="font-bold text-white">File de moderation</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[#FF5500]/20 text-[#FF6620] border border-[#FF5500]/20 font-medium">{pending.length} en attente</span>
-          </div>
-
-          {pending.length === 0 ? (
-            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
-              <p className="text-gray-500">Aucune annonce en attente</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {pending.map(listing => (
-                <div key={listing.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 hover:border-[#22223A] transition-all">
-                  <div className="flex gap-4 items-start">
-                    <div className="w-16 h-12 rounded-lg bg-[#16161F] overflow-hidden flex-shrink-0">
-                      {listing.images[0] ? (
-                        <img src={listing.images[0].imageUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-700 text-xs">N/A</div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{listing.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {parseFloat(listing.price.toString()).toLocaleString()} EUR · {listing.listingType === 'sale' ? 'Vente' : 'Location'} · par {listing.user.name} ({listing.user.email})
-                      </p>
-                      <p className="text-xs text-gray-600">Soumis le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => approve(listing.id)} className="text-xs px-3 py-1.5 bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg hover:bg-green-500/30 font-medium transition-all">
-                        Approuver
-                      </button>
-                      <button onClick={() => setRejectingId(rejectingId === listing.id ? null : listing.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 font-medium transition-all">
-                        Rejeter
-                      </button>
-                    </div>
-                  </div>
-                  {rejectingId === listing.id && (
-                    <div className="mt-3 pt-3 border-t border-[#1A1A2E] flex gap-2">
-                      <input type="text" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif du rejet..." className="flex-1 px-3 py-2 bg-[#16161F] border border-[#22223A] rounded-lg text-white text-sm focus:outline-none focus:border-[#FF5500]/50 placeholder-gray-600 transition-all" />
-                      <button onClick={() => reject(listing.id)} className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/20 text-sm rounded-lg hover:bg-red-500/30 transition-all">Confirmer</button>
+        {/* ANNONCES */}
+        {activeTab === 'listings' && (
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+            {listings.length === 0 ? (
+              <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucune annonce</p>
+            ) : listings.map(listing => (
+              <div key={listing.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
+                <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#1A1A2E' }}>
+                  {listing.images?.[0] ? (
+                    <img src={listing.images[0].imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ color: '#333' }}>
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'services' && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-white">Gestion des services</h2>
-            <Link href="/services" className="text-sm text-[#FF5500] hover:text-[#FF6620] transition-colors">Voir la page publique</Link>
-          </div>
-          {services.length === 0 ? (
-            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
-              <p className="text-gray-500">Aucun service publie</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {services.map(service => (
-                <div key={service.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 flex items-center gap-4 hover:border-[#22223A] transition-all">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-medium text-white">{service.name}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${service.isVisible ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-gray-500/20 text-gray-400 border-gray-500/20'}`}>
-                        {service.isVisible ? 'Visible' : 'Masque'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">{CATEGORY_LABELS[service.category]} · {service.city} · par {service.user.name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate text-white">{listing.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#666' }}>{listing.user.name} · {listing.locationCity} · {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: statusColors[listing.status]?.bg, color: statusColors[listing.status]?.color }}>
+                      {statusColors[listing.status]?.label}
+                    </span>
+                    <span className="font-bold text-sm" style={{ color: '#FF5500' }}>{parseFloat(listing.price?.toString() || '0').toLocaleString()} EUR</span>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Link href={`/services/${service.id}`} className="text-xs px-3 py-1.5 bg-[#16161F] border border-[#22223A] rounded-lg text-gray-400 hover:text-white transition-all">Voir</Link>
-                    <button onClick={() => toggleServiceVisibility(service.id, service.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${service.isVisible ? 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
-                      {service.isVisible ? 'Masquer' : 'Afficher'}
+                </div>
+                {listing.status === 'pending' && (
+                  <div className="flex flex-col gap-1">
+                    <button onClick={() => approveListing(listing.id)} className="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style={{ backgroundColor: '#22C55E' }}>
+                      Approuver
                     </button>
-                    <button onClick={() => deleteService(service.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">Supprimer</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'reviews' && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-white">Gestion des avis</h2>
-            <Link href="/avis" className="text-sm text-[#FF5500] hover:text-[#FF6620] transition-colors">Voir la page publique</Link>
-          </div>
-          {reviews.length === 0 ? (
-            <div className="text-center py-12 bg-[#111118] rounded-2xl border border-[#1A1A2E]">
-              <p className="text-gray-500">Aucun avis pour le moment</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {reviews.map(review => (
-                <div key={review.id} className="bg-[#111118] border border-[#1A1A2E] rounded-xl p-4 hover:border-[#22223A] transition-all">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-medium text-white">{review.user.name}</p>
-                        <span className="text-xs text-gray-500">({review.user.email})</span>
-                        <div className="flex gap-0.5">
-                          {[1,2,3,4,5].map(s => (
-                            <span key={s} className={`text-xs ${s <= review.rating ? 'text-[#FF6620]' : 'text-gray-700'}`}>★</span>
-                          ))}
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${review.isVisible ? 'bg-green-500/20 text-green-400 border-green-500/20' : 'bg-gray-500/20 text-gray-400 border-gray-500/20'}`}>
-                          {review.isVisible ? 'Visible' : 'Masque'}
-                        </span>
+                    {rejectId === listing.id ? (
+                      <div className="flex flex-col gap-1">
+                        <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif..." className="text-xs px-2 py-1 rounded-lg focus:outline-none text-white" style={{ backgroundColor: '#1A1A2E', border: '1px solid #2A2A3E', width: '120px' }} />
+                        <button onClick={() => rejectListing(listing.id)} className="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style={{ backgroundColor: '#EF4444' }}>Confirmer</button>
+                        <button onClick={() => setRejectId(null)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A1A2E', color: '#666' }}>Annuler</button>
                       </div>
-                      <p className="text-sm text-gray-300 leading-relaxed">{review.comment}</p>
-                      <p className="text-xs text-gray-600 mt-1">{new Date(review.createdAt).toLocaleDateString('fr-FR')}</p>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => toggleReviewVisibility(review.id, review.isVisible)} className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all border ${review.isVisible ? 'bg-[#16161F] border-[#22223A] text-gray-400 hover:bg-gray-700' : 'bg-green-500/20 border-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
-                        {review.isVisible ? 'Masquer' : 'Afficher'}
+                    ) : (
+                      <button onClick={() => setRejectId(listing.id)} className="text-xs px-3 py-1.5 rounded-lg font-medium" style={{ backgroundColor: '#1A0000', color: '#EF4444' }}>
+                        Rejeter
                       </button>
-                      <button onClick={() => deleteReview(review.id)} className="text-xs px-3 py-1.5 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">
-                        Supprimer
-                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* SERVICES */}
+        {activeTab === 'services' && (
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+            {services.length === 0 ? (
+              <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun service</p>
+            ) : services.map(service => (
+              <div key={service.id} className="p-4 flex items-center gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-white">{service.name}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#666' }}>{service.user.name} · {service.city} · {new Date(service.createdAt).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: service.isVisible ? '#001A0A' : '#1A1A2E', color: service.isVisible ? '#22C55E' : '#666' }}>
+                  {service.isVisible ? 'Visible' : 'Masque'}
+                </span>
+                <button onClick={() => toggleService(service.id, service.isVisible)} className="text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: service.isVisible ? '#1A0000' : '#001A0A', color: service.isVisible ? '#EF4444' : '#22C55E' }}>
+                  {service.isVisible ? 'Masquer' : 'Afficher'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* AVIS */}
+        {activeTab === 'reviews' && (
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+            {reviews.length === 0 ? (
+              <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun avis</p>
+            ) : reviews.map(review => (
+              <div key={review.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-sm text-white">{review.user.name}</p>
+                    <div className="flex gap-0.5">
+                      {[1,2,3,4,5].map(s => <span key={s} className="text-xs" style={{ color: s <= review.rating ? '#FF5500' : '#333' }}>★</span>)}
                     </div>
                   </div>
+                  <p className="text-xs" style={{ color: '#888' }}>{review.comment}</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                <div className="flex flex-col gap-1">
+                  <button onClick={() => toggleReview(review.id, review.isVisible)} className="text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: review.isVisible ? '#1A0000' : '#001A0A', color: review.isVisible ? '#EF4444' : '#22C55E' }}>
+                    {review.isVisible ? 'Masquer' : 'Afficher'}
+                  </button>
+                  <button onClick={() => deleteReview(review.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A1A2E', color: '#EF4444' }}>
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
+        {/* SIGNALEMENTS */}
+        {activeTab === 'reports' && (
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+            {reports.length === 0 ? (
+              <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun signalement</p>
+            ) : reports.map(report => (
+              <div key={report.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#1A0800', color: '#FF5500', border: '1px solid #3A1500' }}>
+                      🚩 Signalement
+                    </span>
+                    <p className="font-medium text-sm truncate text-white">{report.listing.title}</p>
+                  </div>
+                  <p className="text-xs mb-1" style={{ color: '#AAA' }}>Motif : <strong style={{ color: '#FF5500' }}>{report.reason}</strong></p>
+                  <p className="text-xs" style={{ color: '#666' }}>
+                    Signale par {report.reporter.name} · {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <a href={`/annonces/${report.listing.id}`} target="_blank" rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 rounded-lg text-center transition-all"
+                    style={{ backgroundColor: '#1A1A2E', border: '1px solid #2A2A3E', color: '#AAA' }}>
+                    Voir
+                  </a>
+                  <button onClick={() => deleteReport(report.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A0000', color: '#EF4444' }}>
+                    Ignorer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

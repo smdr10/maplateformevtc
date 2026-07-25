@@ -1,105 +1,100 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthUser } from '@/middleware/requireAuth'
+import {
+  hashPassword,
+  validatePasswordStrength,
+  isValidEmail,
+  normalizeEmail,
+  generateSecureToken,
+  makeAccessCookieOptions,
+  makeRefreshCookieOptions,
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+} from '@/lib/auth'
+import { signAccessToken, createRefreshToken } from '@/lib/jwt'
+import { cookies } from 'next/headers'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
-  const user = getAuthUser(req)
-  if (!user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
-
   try {
-    const { listingId, message } = await req.json()
-
-    if (!listingId || !message?.trim()) {
-      return NextResponse.json({ error: 'MISSING_FIELDS' }, { status: 400 })
+    const body = await req.json()
+    const { name, email, password, phone, role } = body
+    if (!name?.trim() || !email || !password) {
+      return NextResponse.json(
+        { error: 'MISSING_FIELDS', message: 'Nom, email et mot de passe requis' },
+        { status: 400 }
+      )
     }
-
-    const listing = await prisma.listing.findFirst({
-      where: { id: listingId, deletedAt: null },
-      select: { userId: true },
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'INVALID_EMAIL', message: 'Adresse email invalide' },
+        { status: 400 }
+      )
+    }
+    const { valid, message: pwMessage } = validatePasswordStrength(password)
+    if (!valid) {
+      return NextResponse.json(
+        { error: 'WEAK_PASSWORD', message: pwMessage },
+        { status: 400 }
+      )
+    }
+    const normalizedEmail = normalizeEmail(email)
+    const existing = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
     })
-
-    if (!listing) {
-      return NextResponse.json({ error: 'LISTING_NOT_FOUND' }, { status: 404 })
+    if (existing) {
+      return NextResponse.json(
+        { error: 'EMAIL_TAKEN', message: 'Cette adresse email est deja utilisee' },
+        { status: 409 }
+      )
     }
-
-    if (listing.userId === user.sub) {
-      return NextResponse.json({ error: 'CANNOT_MESSAGE_SELF', message: 'Vous ne pouvez pas vous contacter vous-meme' }, { status: 400 })
-    }
-
-    const newMessage = await prisma.message.create({
+    const passwordHash = await hashPassword(password)
+    const emailVerifyToken = generateSecureToken()
+    const safeRole = role === 'pro' ? 'pro' : 'user'
+    const user = await prisma.user.create({
       data: {
-        senderId: user.sub,
-        receiverId: listing.userId,
-        listingId,
-        message: message.trim(),
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash,
+        phone: phone?.trim() || null,
+        role: safeRole,
+        emailVerifyToken,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
       },
     })
-
-    await prisma.notification.create({
-      data: {
-        userId: listing.userId,
-        type: 'new_message',
-        content: {
-          text: 'Vous avez recu un nouveau message',
-          listingId,
-          senderId: user.sub,
-        },
-      },
+    const accessToken = signAccessToken({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
     })
+    const refreshToken = await createRefreshToken(user.id)
+    const cookieStore = await cookies()
+    cookieStore.set(ACCESS_COOKIE, accessToken, makeAccessCookieOptions())
+    cookieStore.set(REFRESH_COOKIE, refreshToken, makeRefreshCookieOptions())
 
-    return NextResponse.json({ message: newMessage }, { status: 201 })
-  } catch (error) {
-    console.error('[SEND MESSAGE]', error)
-    return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 })
-  }
-}
-
-export async function GET(req: NextRequest) {
-  const user = getAuthUser(req)
-  if (!user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
-
-  try {
-    const messages = await prisma.message.findMany({
-      where: {
-        OR: [{ senderId: user.sub }, { receiverId: user.sub }],
-      },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        sender: { select: { id: true, name: true } },
-        receiver: { select: { id: true, name: true } },
-        listing: { select: { id: true, title: true } },
-      },
-    })
-
-    const conversationsMap = new Map()
-
-    for (const msg of messages) {
-      const otherUser = msg.senderId === user.sub ? msg.receiver : msg.sender
-      const key = `${msg.listingId}:${otherUser.id}`
-
-      if (!conversationsMap.has(key)) {
-        conversationsMap.set(key, {
-          listingId: msg.listingId,
-          listingTitle: msg.listing.title,
-          otherUserId: otherUser.id,
-          otherUserName: otherUser.name,
-          lastMessage: msg.message,
-          lastMessageAt: msg.createdAt,
-          unreadCount: 0,
-        })
-      }
-
-      const conv = conversationsMap.get(key)
-      if (msg.receiverId === user.sub && !msg.readStatus) {
-        conv.unreadCount += 1
-      }
+    // Email de bienvenue
+    try {
+      await sendWelcomeEmail(normalizedEmail, name.trim())
+    } catch (e) {
+      console.error('[EMAIL] Welcome email failed:', e)
     }
 
-    const conversations = Array.from(conversationsMap.values())
-
-    return NextResponse.json({ conversations })
+    return NextResponse.json(
+      { message: 'Compte cree avec succes', user, emailVerified: false },
+      { status: 201 }
+    )
   } catch (error) {
-    console.error('[GET CONVERSATIONS]', error)
-    return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 })
+    console.error('[REGISTER]', error)
+    return NextResponse.json(
+      { error: 'SERVER_ERROR', message: 'Erreur serveur' },
+      { status: 500 }
+    )
   }
 }

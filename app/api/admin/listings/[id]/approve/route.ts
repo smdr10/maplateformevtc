@@ -1,21 +1,20 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
+import { sendListingApprovedEmail } from '@/lib/email'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = getAuthUser(req)
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 })
   }
-
   try {
     const { id } = await params
-
     const listing = await prisma.listing.update({
       where: { id },
       data: { status: 'active' },
+      include: { user: { select: { email: true, name: true } } },
     })
-
     await prisma.notification.create({
       data: {
         userId: listing.userId,
@@ -23,6 +22,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         content: { text: `Votre annonce "${listing.title}" est en ligne`, listingId: id },
       },
     })
+
+    // Email de notification
+    try {
+      await sendListingApprovedEmail(
+        listing.user.email,
+        listing.user.name,
+        listing.title,
+        id
+      )
+    } catch (e) {
+      console.error('[EMAIL] Approved email failed:', e)
+    }
 
     return NextResponse.json({ listing })
   } catch (error) {

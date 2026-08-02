@@ -1,14 +1,7 @@
-// src/lib/auth.ts
-// Utilitaires d'authentification : hash bcrypt, validation, emails
-
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
 const BCRYPT_ROUNDS = 10
-
-// ============================================================
-// MOT DE PASSE
-// ============================================================
 
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, BCRYPT_ROUNDS)
@@ -23,7 +16,7 @@ export function validatePasswordStrength(password: string): {
   message?: string
 } {
   if (password.length < 8)
-    return { valid: false, message: 'Le mot de passe doit contenir au moins 8 caractères' }
+    return { valid: false, message: 'Le mot de passe doit contenir au moins 8 caracteres' }
   if (!/[A-Z]/.test(password))
     return { valid: false, message: 'Le mot de passe doit contenir au moins une majuscule' }
   if (!/[0-9]/.test(password))
@@ -31,44 +24,34 @@ export function validatePasswordStrength(password: string): {
   return { valid: true }
 }
 
-// ============================================================
-// TOKENS (vérification email + reset password)
-// ============================================================
-
 export function generateSecureToken(): string {
   return crypto.randomBytes(32).toString('hex')
 }
 
-// ============================================================
-// COOKIES — helpers pour Set-Cookie
-// ============================================================
-
 export const REFRESH_COOKIE = 'vtc_refresh'
 export const ACCESS_COOKIE  = 'vtc_access'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 export function makeRefreshCookieOptions() {
   return {
-    httpOnly: true,             // inaccessible au JS — protège du XSS
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' as const : 'lax' as const,
     path: '/',
-    maxAge: 30 * 24 * 60 * 60, // 30 jours en secondes
+    maxAge: 30 * 24 * 60 * 60,
   }
 }
 
 export function makeAccessCookieOptions() {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' as const : 'lax' as const,
     path: '/',
-    maxAge: 15 * 60,            // 15 minutes en secondes
+    maxAge: 15 * 60,
   }
 }
-
-// ============================================================
-// VALIDATION EMAIL
-// ============================================================
 
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)

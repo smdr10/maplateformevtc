@@ -37,7 +37,7 @@ export function makeRefreshCookieOptions() {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' as const : 'lax' as const,
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: 30 * 24 * 60 * 60,
   }
@@ -47,7 +47,7 @@ export function makeAccessCookieOptions() {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' as const : 'lax' as const,
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: 15 * 60,
   }

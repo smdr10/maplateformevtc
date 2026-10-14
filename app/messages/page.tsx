@@ -1,10 +1,11 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Conversation {
-  listingId: string
+  listingId: string | null
+  serviceId: string | null
   otherUserId: string
   otherUserName: string
   listingTitle: string
@@ -12,6 +13,8 @@ interface Conversation {
   lastMessageAt: string
   unreadCount: number
 }
+
+const convKey = (c: Conversation) => `${c.listingId ?? 's:' + c.serviceId}-${c.otherUserId}`
 
 interface Message {
   id: string
@@ -46,7 +49,10 @@ export default function MessagesPage() {
 
   const openConversation = async (conv: Conversation) => {
     setCurrentConv(conv)
-    const res = await fetch(`/api/messages/${conv.listingId}/${conv.otherUserId}`, { credentials: 'include' })
+    const url = conv.listingId
+      ? `/api/messages/${conv.listingId}/${conv.otherUserId}`
+      : `/api/messages/${conv.serviceId}/${conv.otherUserId}?type=service`
+    const res = await fetch(url, { credentials: 'include' })
     const data = await res.json()
     setMessages(data.messages || [])
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
@@ -59,7 +65,7 @@ export default function MessagesPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ listingId: currentConv.listingId, receiverId: currentConv.otherUserId, message: newMessage }),
+      body: JSON.stringify({ listingId: currentConv.listingId, serviceId: currentConv.serviceId, receiverId: currentConv.otherUserId, message: newMessage }),
     })
     if (res.ok) {
       const data = await res.json()
@@ -89,9 +95,9 @@ export default function MessagesPage() {
               <p className="text-sm" style={{ color: '#888' }}>Aucune conversation</p>
             </div>
           ) : conversations.map(conv => (
-            <button key={`${conv.listingId}-${conv.otherUserId}`} onClick={() => openConversation(conv)}
+            <button key={convKey(conv)} onClick={() => openConversation(conv)}
               className="w-full text-left p-4 transition-colors hover:bg-gray-50"
-              style={{ borderBottom: '1px solid #F0F0F0', backgroundColor: currentConv?.otherUserId === conv.otherUserId ? '#FFF5F0' : 'transparent' }}>
+              style={{ borderBottom: '1px solid #F0F0F0', backgroundColor: currentConv && convKey(currentConv) === convKey(conv) ? '#FFF5F0' : 'transparent' }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: '#FF5500' }}>
                   {conv.otherUserName.charAt(0).toUpperCase()}

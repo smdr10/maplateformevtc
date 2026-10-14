@@ -136,6 +136,8 @@ export default function AdminPage() {
 
   const deleteReport = async (id: string) => {
     if (!confirm('Ignorer ce signalement ?')) return
+    const res = await fetch(`/api/admin/reports/${id}`, { method: 'DELETE', credentials: 'include' })
+    if (!res.ok) return
     setReports(prev => prev.filter(r => r.id !== id))
   }
 

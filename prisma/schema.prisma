@@ -166,18 +166,21 @@ model Message {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   senderId   String   @map("sender_id") @db.Uuid
   receiverId String   @map("receiver_id") @db.Uuid
-  listingId  String   @map("listing_id") @db.Uuid
+  listingId  String?  @map("listing_id") @db.Uuid
+  serviceId  String?  @map("service_id") @db.Uuid
   message    String
   readStatus Boolean  @default(false) @map("read_status")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   sender   User    @relation("SentMessages",     fields: [senderId],   references: [id], onDelete: Cascade)
   receiver User    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing  Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  service  Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
   @@index([receiverId])
   @@index([listingId])
+  @@index([serviceId])
   @@map("messages")
 }
 
@@ -270,6 +273,7 @@ model Service {
   updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    Message[]
 
   @@index([category])
   @@index([city])

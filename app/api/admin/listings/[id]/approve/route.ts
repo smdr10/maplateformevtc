@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { sendListingApprovedEmail } from '@/lib/email'
+import { LISTING_DURATION_MS } from '@/lib/listings'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = getAuthUser(req)
@@ -12,7 +13,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params
     const listing = await prisma.listing.update({
       where: { id },
-      data: { status: 'active' },
+      data: { status: 'active', rejectionReason: null, expiresAt: new Date(Date.now() + LISTING_DURATION_MS) },
       include: { user: { select: { email: true, name: true } } },
     })
     await prisma.notification.create({

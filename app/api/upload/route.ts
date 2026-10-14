@@ -8,6 +8,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_FILE_SIZE = 8 * 1024 * 1024
+
 export async function POST(req: NextRequest) {
   const user = getAuthUser(req)
   if (!user) {
@@ -24,6 +27,14 @@ export async function POST(req: NextRequest) {
 
     if (files.length > 10) {
       return NextResponse.json({ error: 'TOO_MANY_FILES', message: 'Maximum 10 photos' }, { status: 400 })
+    }
+    for (const file of files) {
+      if (!(file instanceof File) || !ALLOWED_TYPES.includes(file.type)) {
+        return NextResponse.json({ error: 'INVALID_FILE_TYPE', message: 'Formats acceptes : JPG, PNG, WEBP' }, { status: 400 })
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json({ error: 'FILE_TOO_LARGE', message: 'Chaque photo doit faire moins de 8 Mo' }, { status: 400 })
+      }
     }
 
     const uploadPromises = files.map(async (file, index) => {

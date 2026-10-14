@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/middleware/requireAuth'
-import { getAuthUser } from '@/middleware/requireAuth'
+import { LISTING_DURATION_MS } from '@/lib/listings'
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
     const where: any = {
       status: 'active',
       deletedAt: null,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       ...(type && { listingType: type }),
       ...(brand && { brand }),
       ...(fuel && { fuelType: fuel }),
@@ -105,7 +106,7 @@ export const POST = requireAuth(async (req: NextRequest, user) => {
         description,
         locationCity,
         status: 'pending',
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + LISTING_DURATION_MS),
       },
     })
 

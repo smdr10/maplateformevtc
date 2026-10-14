@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { id: listingId } = await params
     const { reason } = await req.json()
 
-    if (!reason?.trim()) {
+    if (typeof reason !== 'string' || !reason.trim()) {
       return NextResponse.json({ error: 'MISSING_REASON', message: 'Veuillez indiquer un motif' }, { status: 400 })
     }
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // Verifie si deja signale par cet utilisateur
     const existing = await prisma.report.findFirst({
-      where: { listingId, reporterId: user.sub },
+      where: { listingId, userId: user.sub },
     })
 
     if (existing) {
@@ -39,8 +39,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const report = await prisma.report.create({
       data: {
         listingId,
-        reporterId: user.sub,
-        reason: reason.trim(),
+        userId: user.sub,
+        reason: reason.trim().slice(0, 100),
       },
     })
 

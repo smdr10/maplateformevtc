@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
@@ -24,7 +24,7 @@ interface Listing {
   status: string
   createdAt: string
   images: { id: string; imageUrl: string; position: number }[]
-  user: { id: string; name: string; role: string; companyName: string | null; phone: string | null; createdAt: string }
+  user: { id: string; name: string; role: string; companyName: string | null; phone: string | null; createdAt: string; company: { verificationStatus: string } | null }
   _count: { favorites: number; messages: number }
 }
 
@@ -303,6 +303,9 @@ export default function AnnonceDetailPage() {
               </div>
               <div>
                 <p className="font-semibold text-sm" style={{ color: '#1A1A1A' }}>{listing.user.companyName || listing.user.name}</p>
+                {listing.user.company?.verificationStatus === 'verified' && (
+                  <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-0.5" style={{ backgroundColor: '#F0FFF4', color: '#15803D' }}>🛡️ Pro certifie</span>
+                )}
                 <p className="text-xs" style={{ color: '#888' }}>Membre depuis {new Date(listing.user.createdAt).getFullYear()}</p>
               </div>
             </div>

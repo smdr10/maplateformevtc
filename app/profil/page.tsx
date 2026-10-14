@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -122,10 +122,14 @@ export default function ProfilPage() {
                 <p className="font-bold" style={{ color: '#1A1A1A' }}>{user?.name}</p>
                 <p className="text-sm" style={{ color: '#888' }}>{user?.email}</p>
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#FFF5F0', color: '#FF5500' }}>
-                  {user?.role === 'admin' ? 'Administrateur' : user?.role === 'pro' ? 'Professionnel' : 'Chauffeur VTC'}
+                  {user?.role === 'admin' ? 'Administrateur' : user?.role === 'pro' ? 'Professionnel' : 'Particulier'}
                 </span>
               </div>
             </div>
+            <a href="/profil/certification" className="flex items-center justify-between mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#F0FFF4', border: '1px solid #BBF7D0', color: '#15803D' }}>
+              <span>🛡️ {user?.role === 'pro' ? 'Certification de ma societe' : 'Vous etes professionnel ? Faites certifier votre societe'}</span>
+              <span>→</span>
+            </a>
 
             {editing ? (
               <div className="space-y-3">

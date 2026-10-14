@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -167,6 +167,9 @@ export default function AdminPage() {
             <h1 className="text-2xl font-black" style={{ color: '#FF5500' }}>Dashboard Admin</h1>
             <p className="text-sm mt-1" style={{ color: '#666' }}>MaPlateformeVTC — Panneau de controle</p>
           </div>
+          <a href="/admin/certifications" className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: '#FF5500' }}>
+            🛡️ Certifications pros
+          </a>
         </div>
 
         {/* STATS */}

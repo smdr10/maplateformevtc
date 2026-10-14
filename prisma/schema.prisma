@@ -51,6 +51,8 @@ enum NotificationType {
   listing_rejected
   new_favorite
   listing_expiring
+  certification_approved
+  certification_rejected
 }
 
 model User {

@@ -10,7 +10,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const listing = await prisma.listing.findFirst({
       where: { id, deletedAt: null },
       include: {
-        user: { select: { id: true, name: true, role: true, companyName: true, phone: true, createdAt: true } },
+        user: {
+          select: {
+            id: true, name: true, role: true, companyName: true, phone: true, createdAt: true,
+            company: { select: { verificationStatus: true } },
+          },
+        },
         images: { orderBy: { position: 'asc' } },
         _count: { select: { favorites: true, messages: true } },
       },

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { purgeExpiredTokens } from '@/lib/jwt'
 import { getUserPlan, listingExpiry } from '@/lib/plans'
+import { deletePrivateDocument } from '@/lib/privateStorage'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const REMINDER_DAYS = 3
+const DOCUMENT_RETENTION_DAYS = 30
 
 // A appeler une fois par jour par un cron (Netlify scheduled function, cron-job.org...)
 // avec l'en-tete Authorization: Bearer <CRON_SECRET>
@@ -71,8 +73,40 @@ export async function POST(req: NextRequest) {
       reminded++
     }
 
+    // Certifications arrivees a echeance : nouveau dossier a envoyer
+    const expiredCertifications = await prisma.company.updateMany({
+      where: { verificationStatus: 'verified', verificationExpiresAt: { lt: now } },
+      data: { verificationStatus: 'expired' },
+    })
+
+    // RGPD : suppression des justificatifs DOCUMENT_RETENTION_DAYS jours apres la decision
+    const toPurge = await prisma.verificationDocument.findMany({
+      where: {
+        purgedAt: null,
+        company: {
+          verificationStatus: { in: ['verified', 'rejected', 'expired'] },
+          updatedAt: { lt: new Date(now.getTime() - DOCUMENT_RETENTION_DAYS * DAY_MS) },
+        },
+      },
+      select: { id: true, storageKey: true },
+      take: 200,
+    })
+    let purgedDocuments = 0
+    for (const doc of toPurge) {
+      try {
+        await deletePrivateDocument(doc.storageKey)
+        await prisma.verificationDocument.update({ where: { id: doc.id }, data: { purgedAt: now } })
+        purgedDocuments++
+      } catch (e) {
+        console.error('[CRON PURGE DOCUMENT]', doc.id, e)
+      }
+    }
+
     const purgedTokens = await purgeExpiredTokens()
-    return NextResponse.json({ renewed, expired, reminded, purgedTokens })
+    return NextResponse.json({
+      renewed, expired, reminded, purgedTokens,
+      expiredCertifications: expiredCertifications.count, purgedDocuments,
+    })
   } catch (error) {
     console.error('[CRON EXPIRE LISTINGS]', error)
     return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 })

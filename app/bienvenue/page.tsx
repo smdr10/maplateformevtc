@@ -45,7 +45,7 @@ export default function BienvenuePage() {
     })
   }, [router])
 
-  const nextPage = me?.accountType === 'professional' ? '/profil?certification=1' : '/annonces/new'
+  const nextPage = me?.accountType === 'professional' ? '/profil/certification' : '/annonces/new'
 
   const choose = async (choice: 'standard' | 'pro_month' | 'pro_year') => {
     setSending(true)

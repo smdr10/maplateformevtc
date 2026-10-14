@@ -144,3 +144,27 @@ export async function sendNewFavoriteEmail(to: string, name: string, listingTitl
     `,
   })
 }
+export async function sendCertificationDecisionEmail(to: string, name: string, companyName: string, approved: boolean, reason?: string | null) {
+  await getResend().emails.send({
+    from: FROM,
+    to,
+    subject: approved ? 'Votre societe est certifiee !' : 'Certification : informations a completer',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#F8F8F8;padding:20px;">
+        <div style="background:#FFFFFF;border-radius:16px;padding:32px;border:1px solid #E8E8E8;">
+          <h1 style="color:#FF5500;font-size:24px;margin:0 0 16px;">MaPlateformeVTC</h1>
+          <h2 style="color:#1A1A1A;font-size:18px;margin:0 0 12px;">${approved ? 'Certification validee 🛡️' : 'Certification non validee'}</h2>
+          <p style="color:#555;line-height:1.6;">Bonjour ${esc(name)},</p>
+          <p style="color:#555;line-height:1.6;">${approved
+            ? `<strong>${esc(companyName)}</strong> est maintenant certifiee. Le badge « Pro certifie » apparait sur votre profil et vos annonces.`
+            : `Nous n'avons pas pu certifier <strong>${esc(companyName)}</strong>.`}</p>
+          ${!approved && reason ? `<div style="background:#FFF0F0;border:1px solid #FFD0D0;border-radius:12px;padding:16px;margin:16px 0;"><p style="color:#888;margin:0;font-size:14px;">Motif : ${esc(reason)}</p></div>` : ''}
+          <a href="https://maplateformevtc.com/profil/certification" style="display:inline-block;background:#FF5500;color:#FFFFFF;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:bold;margin-top:8px;">
+            ${approved ? 'Voir mon profil' : 'Completer mon dossier'}
+          </a>
+          <p style="color:#AAA;font-size:12px;margin-top:24px;">MaPlateformeVTC — La communaute des professionnels VTC</p>
+        </div>
+      </div>
+    `,
+  })
+}

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
@@ -13,7 +13,9 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/'
+  // Uniquement des chemins internes (evite la redirection vers un site tiers)
+  const requested = searchParams.get('redirect')
+  const redirect = requested && requested.startsWith('/') && !requested.startsWith('//') ? requested : '/espace'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

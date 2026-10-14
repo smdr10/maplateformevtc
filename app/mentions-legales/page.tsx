@@ -17,7 +17,9 @@ export default function MentionsLegalesPage() {
             <h2 className="text-lg font-bold mb-3" style={{ color: '#FF5500' }}>1. Éditeur du site</h2>
             <div className="space-y-1 text-sm" style={{ color: '#555' }}>
               <p><strong style={{ color: '#1A1A1A' }}>Raison sociale :</strong> SM Drivers</p>
+              <p><strong style={{ color: '#1A1A1A' }}>Forme juridique :</strong> SAS (societe par actions simplifiee)</p>
               <p><strong style={{ color: '#1A1A1A' }}>SIRET :</strong> 912 147 899 00013</p>
+              <p><strong style={{ color: '#1A1A1A' }}>TVA intracommunautaire :</strong> FR86 912 147 899</p>
               <p><strong style={{ color: '#1A1A1A' }}>Siège social :</strong> 13 Allée des Effes, 94260 Fresnes – France</p>
               <p><strong style={{ color: '#1A1A1A' }}>Site web :</strong> <a href="https://smdrivers.fr" className="hover:underline" style={{ color: '#FF5500' }}>https://smdrivers.fr</a></p>
               <p><strong style={{ color: '#1A1A1A' }}>Email :</strong> <a href="mailto:contact@smdrivers.fr" className="hover:underline" style={{ color: '#FF5500' }}>contact@smdrivers.fr</a></p>

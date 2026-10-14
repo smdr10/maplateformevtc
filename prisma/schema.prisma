@@ -54,40 +54,44 @@ enum NotificationType {
 }
 
 model User {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                String    @db.VarChar(100)
-  email               String    @unique @db.VarChar(255)
-  passwordHash        String    @map("password_hash") @db.VarChar(255)
-  phone               String?   @db.VarChar(20)
-  role                UserRole  @default(user)
-  companyName         String?   @map("company_name") @db.VarChar(150)
-  emailVerifiedAt     DateTime? @map("email_verified_at") @db.Timestamptz
-  emailVerifyToken    String?   @map("email_verify_token") @db.VarChar(255)
-  resetToken          String?   @map("reset_token") @db.VarChar(255)
-  resetTokenExpiresAt DateTime? @map("reset_token_expires_at") @db.Timestamptz
-  isSuspended         Boolean   @default(false) @map("is_suspended")
-  ratingAvg           Decimal?  @map("rating_avg") @db.Decimal(3, 2)
-  ratingCount         Int       @default(0) @map("rating_count")
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String      @db.VarChar(100)
+  email               String      @unique @db.VarChar(255)
+  passwordHash        String      @map("password_hash") @db.VarChar(255)
+  phone               String?     @db.VarChar(20)
+  role                UserRole    @default(user)
+  companyName         String?     @map("company_name") @db.VarChar(150)
+  emailVerifiedAt     DateTime?   @map("email_verified_at") @db.Timestamptz
+  emailVerifyToken    String?     @map("email_verify_token") @db.VarChar(255)
+  resetToken          String?     @map("reset_token") @db.VarChar(255)
+  resetTokenExpiresAt DateTime?   @map("reset_token_expires_at") @db.Timestamptz
+  isSuspended         Boolean     @default(false) @map("is_suspended")
+  ratingAvg           Decimal?    @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount         Int         @default(0) @map("rating_count")
+  accountType         AccountType @default(individual) @map("account_type")
+  planChoiceAt        DateTime?   @map("plan_choice_at") @db.Timestamptz // affiche des packs vue/choisie apres l'inscription
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime    @updatedAt @map("updated_at") @db.Timestamptz
 
-  listings         Listing[]
-  sentMessages     Message[]      @relation("SentMessages")
-  receivedMessages Message[]      @relation("ReceivedMessages")
-  favorites        Favorite[]
-  notifications    Notification[]
-  reports          Report[]
-  givenReviews     Review[]       @relation("ReviewerRelation")
-  receivedReviews  Review[]       @relation("SellerRelation")
-  refreshTokens    RefreshToken[]
-  services         Service[]
-  platformReviews PlatformReview[]
+  listings              Listing[]
+  sentMessages          Message[]            @relation("SentMessages")
+  receivedMessages      Message[]            @relation("ReceivedMessages")
+  favorites             Favorite[]
+  notifications         Notification[]
+  reports               Report[]
+  givenReviews          Review[]             @relation("ReviewerRelation")
+  receivedReviews       Review[]             @relation("SellerRelation")
+  refreshTokens         RefreshToken[]
+  services              Service[]
+  platformReviews       PlatformReview[]
+  company               Company?
+  subscription          Subscription?
+  verificationDecisions VerificationReview[] @relation("VerificationAdmin")
 
   @@index([email])
   @@index([role])
   @@map("users")
 }
-
 
 model RefreshToken {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -96,7 +100,7 @@ model RefreshToken {
   expiresAt DateTime @map("expires_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -104,31 +108,32 @@ model RefreshToken {
 }
 
 model Listing {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId          String        @map("user_id") @db.Uuid
-  title           String        @db.VarChar(200)
-  brand           String        @db.VarChar(50)
-  model           String        @db.VarChar(80)
-  year            Int           @db.SmallInt
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String           @map("user_id") @db.Uuid
+  title           String           @db.VarChar(200)
+  brand           String           @db.VarChar(50)
+  model           String           @db.VarChar(80)
+  year            Int              @db.SmallInt
   mileage         Int
-  fuelType        FuelType      @map("fuel_type")
+  fuelType        FuelType         @map("fuel_type")
   transmission    TransmissionType
-  color           String?       @db.VarChar(40)
-  seats           Int           @default(5) @db.SmallInt
-  vtcCompliant    Boolean       @default(false) @map("vtc_compliant")
-  licenseUrl      String?       @map("license_url")
-  listingType     ListingType   @map("listing_type")
-  price           Decimal       @db.Decimal(10, 2)
-  rentDuration    RentDuration? @map("rent_duration")
+  color           String?          @db.VarChar(40)
+  seats           Int              @default(5) @db.SmallInt
+  vtcCompliant    Boolean          @default(false) @map("vtc_compliant")
+  licenseUrl      String?          @map("license_url")
+  listingType     ListingType      @map("listing_type")
+  price           Decimal          @db.Decimal(10, 2)
+  rentDuration    RentDuration?    @map("rent_duration")
   description     String
-  locationCity    String        @map("location_city") @db.VarChar(100)
-  status          ListingStatus @default(pending)
-  expiresAt       DateTime?     @map("expires_at") @db.Timestamptz
-  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz
-  viewsCount      Int           @default(0) @map("views_count")
-  rejectionReason String?       @map("rejection_reason")
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  locationCity    String           @map("location_city") @db.VarChar(100)
+  status          ListingStatus    @default(pending)
+  expiresAt       DateTime?        @map("expires_at") @db.Timestamptz
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz
+  viewsCount      Int              @default(0) @map("views_count")
+  rejectionReason String?          @map("rejection_reason")
+  priorityReview  Boolean          @default(false) @map("priority_review") // pack Pro : moderation sous 12 h
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   images    ListingImage[]
@@ -156,7 +161,7 @@ model ListingImage {
   position  Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
   @@map("listing_images")
@@ -172,8 +177,8 @@ model Message {
   readStatus Boolean  @default(false) @map("read_status")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  sender   User    @relation("SentMessages",     fields: [senderId],   references: [id], onDelete: Cascade)
-  receiver User    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender   User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   listing  Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
   service  Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
@@ -190,7 +195,7 @@ model Favorite {
   listingId String   @map("listing_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
@@ -208,7 +213,7 @@ model Notification {
   expiresAt DateTime?        @map("expires_at") @db.Timestamptz
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("notifications")
@@ -223,7 +228,7 @@ model Report {
   status    String   @default("open") @db.VarChar(20)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
@@ -232,17 +237,17 @@ model Report {
 }
 
 model Review {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reviewerId  String   @map("reviewer_id") @db.Uuid
-  sellerId    String   @map("seller_id") @db.Uuid
-  listingId   String   @map("listing_id") @db.Uuid
-  rating      Int      @db.SmallInt
-  comment     String?
-  isVisible   Boolean  @default(true) @map("is_visible")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  sellerId   String   @map("seller_id") @db.Uuid
+  listingId  String   @map("listing_id") @db.Uuid
+  rating     Int      @db.SmallInt
+  comment    String?
+  isVisible  Boolean  @default(true) @map("is_visible")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   reviewer User    @relation("ReviewerRelation", fields: [reviewerId], references: [id], onDelete: Cascade, map: "reviews_reviewer_fkey")
-  seller   User    @relation("SellerRelation",   fields: [sellerId],   references: [id], onDelete: Cascade, map: "reviews_seller_fkey")
+  seller   User    @relation("SellerRelation", fields: [sellerId], references: [id], onDelete: Cascade, map: "reviews_seller_fkey")
   listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade, map: "reviews_listing_fkey")
 
   @@unique([reviewerId, listingId])
@@ -272,8 +277,8 @@ model Service {
   createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages    Message[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
 
   @@index([category])
   @@index([city])
@@ -289,8 +294,192 @@ model PlatformReview {
   isVisible Boolean  @default(true) @map("is_visible")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("platform_reviews")
+}
+
+// ============================================================
+// COMPTES PROFESSIONNELS, CERTIFICATION ET PACKS
+// ============================================================
+
+enum AccountType {
+  individual // particulier
+  professional // societe, micro-entreprise...
+}
+
+enum LegalForm {
+  micro_entreprise
+  ei
+  eurl
+  sasu
+  sarl
+  sas
+  sa
+  other
+}
+
+enum ProActivity {
+  driver_independent // chauffeur VTC independant
+  fleet // gestionnaire de flotte / exploitant
+  dealer // concessionnaire, marchand auto
+  lessor_loa // societe de LOA / location
+  garage
+  insurer // assureur, courtier
+  trainer // centre de formation
+  accountant // expert-comptable
+  lawyer // avocat, juriste
+  equipment_supplier // equipementier, accessoiriste
+}
+
+enum VerificationStatus {
+  unverified // aucun dossier envoye
+  pending // dossier envoye, en attente de decision
+  verified // certifie
+  rejected // refuse (motif dans rejectionReason)
+  expired // certification a renouveler
+}
+
+model Company {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String             @unique @map("user_id") @db.Uuid
+  legalName             String             @map("legal_name") @db.VarChar(150)
+  tradeName             String?            @map("trade_name") @db.VarChar(150)
+  siret                 String?            @db.VarChar(14)
+  legalForm             LegalForm?         @map("legal_form")
+  activities            ProActivity[]
+  address               String?            @db.VarChar(255)
+  postalCode            String?            @map("postal_code") @db.VarChar(10)
+  city                  String?            @db.VarChar(100)
+  phone                 String?            @db.VarChar(20)
+  website               String?            @db.VarChar(255)
+  description           String?
+  logoUrl               String?            @map("logo_url")
+  verificationStatus    VerificationStatus @default(unverified) @map("verification_status")
+  verifiedAt            DateTime?          @map("verified_at") @db.Timestamptz
+  verificationExpiresAt DateTime?          @map("verification_expires_at") @db.Timestamptz
+  rejectionReason       String?            @map("rejection_reason")
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents VerificationDocument[]
+  reviews   VerificationReview[]
+
+  @@index([siret])
+  @@index([verificationStatus])
+  @@map("companies")
+}
+
+enum DocumentType {
+  id_card // piece d'identite du dirigeant
+  kbis // extrait Kbis de moins de 3 mois
+  sirene_notice // avis de situation SIRENE (micro-entrepreneurs)
+  rne_extract // extrait d'immatriculation RNE
+  vtc_card // carte professionnelle VTC
+  insurance_certificate // attestation d'assurance (VTC, flotte, RC pro)
+  vtc_register // inscription au registre des VTC
+  orias // immatriculation ORIAS (assureurs, courtiers)
+  training_approval // agrement prefectoral centre de formation
+  professional_order // inscription a l'Ordre ou au barreau
+  other
+}
+
+enum DocumentStatus {
+  pending
+  accepted
+  rejected
+}
+
+// Documents sensibles : stockes en prive (jamais d'URL publique), supprimes apres decision + delai de conservation
+model VerificationDocument {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId     String         @map("company_id") @db.Uuid
+  type          DocumentType
+  storageKey    String         @map("storage_key") // identifiant prive chez l'hebergeur de fichiers
+  fileName      String         @map("file_name") @db.VarChar(255)
+  mimeType      String         @map("mime_type") @db.VarChar(100)
+  status        DocumentStatus @default(pending)
+  expiresAt     DateTime?      @map("expires_at") @db.Timestamptz // date d'expiration lue sur le document
+  extractedData Json?          @map("extracted_data") // donnees lues par l'IA
+  uploadedAt    DateTime       @default(now()) @map("uploaded_at") @db.Timestamptz
+  purgedAt      DateTime?      @map("purged_at") @db.Timestamptz // fichier supprime (RGPD)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("verification_documents")
+}
+
+enum AiVerdict {
+  compliant // conforme
+  doubtful // douteux, a examiner
+  non_compliant // non conforme
+}
+
+enum AdminDecision {
+  approved
+  rejected
+}
+
+// Une analyse IA d'un dossier + la decision humaine de l'admin (l'IA ne decide jamais seule)
+model VerificationReview {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId     String         @map("company_id") @db.Uuid
+  aiVerdict     AiVerdict?     @map("ai_verdict")
+  aiScore       Int?           @map("ai_score") @db.SmallInt // 0 a 100
+  aiReport      Json?          @map("ai_report") // points verifies, incoherences, sources
+  aiModel       String?        @map("ai_model") @db.VarChar(100)
+  aiAnalyzedAt  DateTime?      @map("ai_analyzed_at") @db.Timestamptz
+  adminDecision AdminDecision? @map("admin_decision")
+  adminId       String?        @map("admin_id") @db.Uuid
+  adminComment  String?        @map("admin_comment")
+  decidedAt     DateTime?      @map("decided_at") @db.Timestamptz
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  admin   User?   @relation("VerificationAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@map("verification_reviews")
+}
+
+enum PlanTier {
+  standard
+  pro
+}
+
+enum BillingInterval {
+  month
+  year
+}
+
+enum SubscriptionStatus {
+  trialing // periode offerte
+  active
+  past_due // paiement en echec
+  canceled // resilie, reste actif jusqu'a currentPeriodEnd
+  expired
+}
+
+// Pas d'abonnement = pack Standard
+model Subscription {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  tier                 PlanTier           @default(pro)
+  interval             BillingInterval
+  status               SubscriptionStatus
+  trialEndsAt          DateTime?          @map("trial_ends_at") @db.Timestamptz
+  currentPeriodEnd     DateTime?          @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  stripeCustomerId     String?            @unique @map("stripe_customer_id") @db.VarChar(255)
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id") @db.VarChar(255)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("subscriptions")
 }

@@ -18,7 +18,7 @@ import { sendWelcomeEmail } from '@/lib/email'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, email, password, phone, role } = body
+    const { name, email, password, phone, accountType, companyName } = body
     if (!name?.trim() || !email || !password) {
       return NextResponse.json(
         { error: 'MISSING_FIELDS', message: 'Nom, email et mot de passe requis' },
@@ -51,14 +51,26 @@ export async function POST(req: NextRequest) {
     }
     const passwordHash = await hashPassword(password)
     const emailVerifyToken = generateSecureToken()
-    const safeRole = role === 'pro' ? 'pro' : 'user'
+    const isProfessional = accountType === 'professional'
+    if (isProfessional && (typeof companyName !== 'string' || !companyName.trim())) {
+      return NextResponse.json(
+        { error: 'MISSING_FIELDS', message: 'Nom de la societe requis pour un compte professionnel' },
+        { status: 400 }
+      )
+    }
+    // role 'pro' conserve pour compatibilite ; accountType est la reference
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
         email: normalizedEmail,
         passwordHash,
         phone: phone?.trim() || null,
-        role: safeRole,
+        role: isProfessional ? 'pro' : 'user',
+        accountType: isProfessional ? 'professional' : 'individual',
+        companyName: isProfessional ? companyName.trim().slice(0, 150) : null,
+        ...(isProfessional && {
+          company: { create: { legalName: companyName.trim().slice(0, 150) } },
+        }),
         emailVerifyToken,
       },
       select: {
@@ -66,6 +78,7 @@ export async function POST(req: NextRequest) {
         name: true,
         email: true,
         role: true,
+        accountType: true,
         createdAt: true,
       },
     })

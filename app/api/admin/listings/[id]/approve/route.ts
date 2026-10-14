@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { sendListingApprovedEmail } from '@/lib/email'
-import { LISTING_DURATION_MS } from '@/lib/listings'
+import { getUserPlan, listingExpiry } from '@/lib/plans'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = getAuthUser(req)
@@ -11,9 +11,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   try {
     const { id } = await params
+    const existing = await prisma.listing.findFirst({ where: { id, deletedAt: null }, select: { userId: true } })
+    if (!existing) {
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
+    }
+    const { limits } = await getUserPlan(existing.userId)
     const listing = await prisma.listing.update({
       where: { id },
-      data: { status: 'active', rejectionReason: null, expiresAt: new Date(Date.now() + LISTING_DURATION_MS) },
+      data: { status: 'active', rejectionReason: null, expiresAt: listingExpiry(limits) },
       include: { user: { select: { email: true, name: true } } },
     })
     await prisma.notification.create({

@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
 
     const listings = await prisma.listing.findMany({
       where: { status: status as any, deletedAt: null },
-      orderBy: { createdAt: 'asc' },
+      // Pack Pro en premier (validation sous 12 h), puis les plus anciennes
+      orderBy: [{ priorityReview: 'desc' }, { createdAt: 'asc' }],
       include: {
         user: { select: { id: true, name: true, email: true, role: true } },
         images: { orderBy: { position: 'asc' }, take: 1 },

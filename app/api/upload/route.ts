@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { v2 as cloudinary } from 'cloudinary'
+import { PLANS } from '@/lib/plans'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,6 +11,8 @@ cloudinary.config({
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 8 * 1024 * 1024
+// Plafond technique = pack le plus genereux ; la limite du pack est appliquee a l'enregistrement des photos
+const MAX_FILES = PLANS.pro.maxPhotos
 
 export async function POST(req: NextRequest) {
   const user = getAuthUser(req)
@@ -25,8 +28,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'NO_FILES', message: 'Aucun fichier recu' }, { status: 400 })
     }
 
-    if (files.length > 10) {
-      return NextResponse.json({ error: 'TOO_MANY_FILES', message: 'Maximum 10 photos' }, { status: 400 })
+    if (files.length > MAX_FILES) {
+      return NextResponse.json({ error: 'TOO_MANY_FILES', message: `Maximum ${MAX_FILES} photos` }, { status: 400 })
     }
     for (const file of files) {
       if (!(file instanceof File) || !ALLOWED_TYPES.includes(file.type)) {

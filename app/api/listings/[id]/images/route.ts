@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
-
-const MAX_IMAGES = 10
+import { getUserPlan, MIN_PHOTOS, PLANS } from '@/lib/plans'
 
 // N'accepte que les images hebergees sur notre compte Cloudinary
 function isAllowedImageUrl(url: unknown): url is string {
@@ -21,7 +20,7 @@ function isAllowedImageUrl(url: unknown): url is string {
 async function findOwnedListing(id: string, userId: string, role: string) {
   return prisma.listing.findFirst({
     where: { id, deletedAt: null, ...(role !== 'admin' && { userId }) },
-    select: { id: true },
+    select: { id: true, userId: true },
   })
 }
 
@@ -36,15 +35,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
     const body = await req.json()
     const { images } = body
-    if (!Array.isArray(images) || images.length < 3) {
+    const { limits } = await getUserPlan(listing.userId)
+    if (!Array.isArray(images) || images.length < MIN_PHOTOS) {
       return NextResponse.json(
-        { error: 'MIN_PHOTOS', message: 'Minimum 3 photos requises' },
+        { error: 'MIN_PHOTOS', message: `Minimum ${MIN_PHOTOS} photo(s) requise(s)` },
         { status: 400 }
       )
     }
-    if (images.length > MAX_IMAGES) {
+    if (images.length > limits.maxPhotos) {
       return NextResponse.json(
-        { error: 'TOO_MANY_PHOTOS', message: `Maximum ${MAX_IMAGES} photos` },
+        {
+          error: 'TOO_MANY_PHOTOS',
+          message: `Votre pack ${limits.label} permet ${limits.maxPhotos} photos par annonce`,
+          upgradeAvailable: limits.maxPhotos < PLANS.pro.maxPhotos,
+        },
         { status: 400 }
       )
     }
@@ -91,9 +95,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const count = await prisma.listingImage.count({
       where: { listingId: id },
     })
-    if (count <= 3) {
+    if (count <= MIN_PHOTOS) {
       return NextResponse.json(
-        { error: 'MIN_PHOTOS', message: 'Impossible : minimum 3 photos requises' },
+        { error: 'MIN_PHOTOS', message: `Impossible : minimum ${MIN_PHOTOS} photo(s) requise(s)` },
         { status: 422 }
       )
     }

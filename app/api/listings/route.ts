@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/middleware/requireAuth'
-import { LISTING_DURATION_MS } from '@/lib/listings'
+import { getUserPlan, countCountedListings } from '@/lib/plans'
 
 export async function GET(req: NextRequest) {
   try {
@@ -87,6 +87,19 @@ export const POST = requireAuth(async (req: NextRequest, user) => {
       )
     }
 
+    const { tier, limits } = await getUserPlan(user.sub)
+    if (await countCountedListings(user.sub) >= limits.maxActiveListings) {
+      return NextResponse.json(
+        {
+          error: 'LISTING_LIMIT_REACHED',
+          message: `Votre pack ${limits.label} permet ${limits.maxActiveListings} annonces actives.`,
+          tier,
+          upgradeAvailable: tier === 'standard',
+        },
+        { status: 403 }
+      )
+    }
+
     const listing = await prisma.listing.create({
       data: {
         userId: user.sub,
@@ -106,7 +119,9 @@ export const POST = requireAuth(async (req: NextRequest, user) => {
         description,
         locationCity,
         status: 'pending',
-        expiresAt: new Date(Date.now() + LISTING_DURATION_MS),
+        // La duree de publication demarre a la validation par l'admin
+        expiresAt: null,
+        priorityReview: limits.priorityReview,
       },
     })
 

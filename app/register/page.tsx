@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: 'user' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', accountType: 'individual', companyName: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -39,7 +39,7 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.message || 'Erreur inscription'); return }
-      window.location.href = '/'
+      window.location.href = '/bienvenue'
     } catch {
       setError('Erreur reseau, reessayez')
     } finally {
@@ -71,15 +71,27 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>Type de compte</label>
               <div className="grid grid-cols-2 gap-3">
-                {[{ value: 'user', label: 'Chauffeur VTC' }, { value: 'pro', label: 'Pro / Flotte' }].map(r => (
-                  <button key={r.value} type="button" onClick={() => update('role', r.value)}
+                {[
+                  { value: 'individual', label: 'Particulier', hint: 'Sans societe' },
+                  { value: 'professional', label: 'Professionnel', hint: 'Societe, micro-entreprise' },
+                ].map(r => (
+                  <button key={r.value} type="button" onClick={() => update('accountType', r.value)}
                     className="p-3 rounded-xl border-2 text-sm font-medium transition-all"
-                    style={{ borderColor: form.role === r.value ? '#FF5500' : '#E8E8E8', backgroundColor: form.role === r.value ? '#FFF5F0' : '#F8F8F8', color: form.role === r.value ? '#FF5500' : '#888' }}>
+                    style={{ borderColor: form.accountType === r.value ? '#FF5500' : '#E8E8E8', backgroundColor: form.accountType === r.value ? '#FFF5F0' : '#F8F8F8', color: form.accountType === r.value ? '#FF5500' : '#888' }}>
                     {r.label}
+                    <span className="block text-xs font-normal mt-0.5" style={{ color: '#AAA' }}>{r.hint}</span>
                   </button>
                 ))}
               </div>
             </div>
+
+            {form.accountType === 'professional' && (
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>Nom de la societe <span className="text-red-500">*</span></label>
+                <input type="text" value={form.companyName} onChange={e => update('companyName', e.target.value)} required placeholder="VTC Express SAS" className={inputClass} style={inputStyle} />
+                <p className="text-xs mt-1" style={{ color: '#AAA' }}>Vous completerez SIRET et documents apres l&apos;inscription pour obtenir le badge certifie.</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1.5" style={{ color: '#555' }}>Nom complet <span className="text-red-500">*</span></label>

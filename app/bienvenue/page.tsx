@@ -57,7 +57,16 @@ export default function BienvenuePage() {
         body: JSON.stringify({ choice }),
       })
       const data = await res.json()
-      if (choice !== 'standard' && !data.paymentAvailable) {
+      if (choice !== 'standard') {
+        if (!data.paymentAvailable) { setProPending(true); return }
+        const checkout = await fetch('/api/billing/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ interval: choice === 'pro_month' ? 'month' : 'year' }),
+        })
+        const session = await checkout.json()
+        if (session.url) { window.location.href = session.url; return }
         setProPending(true)
         return
       }

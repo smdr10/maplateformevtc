@@ -126,6 +126,10 @@ export default function ProfilPage() {
                 </span>
               </div>
             </div>
+            <a href="/abonnement" className="flex items-center justify-between mb-2 p-3 rounded-xl text-sm" style={{ backgroundColor: '#FFF5F0', border: '1px solid #FFD0B0', color: '#FF5500' }}>
+              <span>⭐ Mon abonnement</span>
+              <span>→</span>
+            </a>
             <a href="/profil/certification" className="flex items-center justify-between mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#F0FFF4', border: '1px solid #BBF7D0', color: '#15803D' }}>
               <span>🛡️ {user?.role === 'pro' ? 'Certification de ma societe' : 'Vous etes professionnel ? Faites certifier votre societe'}</span>
               <span>→</span>

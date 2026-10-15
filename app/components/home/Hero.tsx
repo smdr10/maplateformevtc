@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
-import { BadgeCheck, CarFront, Handshake, MapPin, MessageCircle, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { CarFront, MapPin, MessageCircle, Search, ShieldCheck } from 'lucide-react'
 
 type Mode = 'sale' | 'week' | 'loa'
 
@@ -14,12 +14,6 @@ const MODES: { v: Mode; l: string }[] = [
 
 const ROTATING = ['acheter.', 'louer.', 'financer.', 'vendre.']
 const EASE = [0.22, 1, 0.36, 1] as const
-
-const TRUST = [
-  { icon: ShieldCheck, label: 'Pros vérifiés' },
-  { icon: BadgeCheck, label: 'Annonces relues' },
-  { icon: Handshake, label: 'Sans commission' },
-]
 
 function RotatingWord() {
   const [i, setI] = useState(0)
@@ -56,7 +50,7 @@ function Floating({ children, className, delay = 0, y = 10 }: { children: React.
   )
 }
 
-export default function Hero({ firstName }: { firstName?: string }) {
+export default function Hero() {
   const [mode, setMode] = useState<Mode>('sale')
   const [query, setQuery] = useState('')
   const [city, setCity] = useState('')
@@ -87,13 +81,8 @@ export default function Hero({ firstName }: { firstName?: string }) {
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-10 lg:grid-cols-[1.1fr_0.9fr] lg:pb-24 lg:pt-16">
         <div>
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}
-            className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-white/80 px-3 py-1.5 text-xs font-bold text-brand shadow-sm backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5" />
-            {firstName ? `Bonjour ${firstName}, prêt à rouler ?` : 'Le marché des chauffeurs VTC'}
-          </motion.p>
 
-          <h1 className="display mt-5 text-[2.75rem] sm:text-6xl lg:text-7xl">
+          <h1 className="display text-[2.75rem] sm:text-6xl lg:text-7xl">
             {words.map((w, i) => (
               <motion.span key={w + i} initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ delay: 0.1 + i * 0.08, duration: 0.6, ease: EASE }} className="mr-[0.22em] inline-block">
@@ -108,7 +97,7 @@ export default function Hero({ firstName }: { firstName?: string }) {
 
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.6, ease: EASE }}
             className="mt-5 max-w-xl text-lg text-ink-soft">
-            Achat, location à la semaine ou LOA : trouvez votre outil de travail auprès de pros vérifiés, et les garages, assureurs et formations qui vont avec.
+            Achat, location à la semaine ou LOA : trouvez votre outil de travail auprès de professionnels vérifiés. Chaque annonce est relue par notre équipe, et vous traitez en direct, sans commission.
           </motion.p>
 
           <motion.form onSubmit={submit} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6, ease: EASE }}
@@ -139,15 +128,6 @@ export default function Hero({ firstName }: { firstName?: string }) {
             </div>
           </motion.form>
 
-          <motion.ul initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08, delayChildren: 0.8 } } }}
-            className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
-            {TRUST.map(t => (
-              <motion.li key={t.label} variants={{ hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft">
-                <t.icon className="h-4 w-4 text-brand" /> {t.label}
-              </motion.li>
-            ))}
-          </motion.ul>
         </div>
 
         {/* Telephone + cartes flottantes */}

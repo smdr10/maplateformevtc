@@ -9,12 +9,6 @@ import Hero from './components/home/Hero'
 import HowItWorks from './components/home/HowItWorks'
 import ServicesBento from './components/home/ServicesBento'
 
-interface User {
-  id: string
-  name: string
-  role: string
-}
-
 interface Review {
   id: string
   rating: number
@@ -34,17 +28,14 @@ const QUICK = [
 export default function HomePage() {
   const [listings, setListings] = useState<CardListing[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
 
   useEffect(() => {
     Promise.all([
       fetch('/api/listings?sort=recent&page=1').then(r => r.json()),
-      fetch('/api/auth/me', { credentials: 'include' }).then(r => (r.ok ? r.json() : null)),
       fetch('/api/platform-reviews').then(r => r.json()),
-    ]).then(([listingsData, meData, reviewsData]) => {
+    ]).then(([listingsData, reviewsData]) => {
       setListings((listingsData.listings || []).slice(0, 8))
-      if (meData?.user) setUser(meData.user)
       setReviews((reviewsData.reviews || []).slice(0, 3))
       setLoading(false)
     }).catch(() => setLoading(false))
@@ -52,7 +43,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <Hero firstName={user?.name.split(' ')[0]} />
+      <Hero />
 
       {/* Acces rapides */}
       <section className="mx-auto max-w-7xl px-4">

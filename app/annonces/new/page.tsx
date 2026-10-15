@@ -83,7 +83,7 @@ export default function NewListingPage() {
       setListingId(data.listing.id)
       setStep(4)
     } catch {
-      setError('Erreur reseau, réessayez')
+      setError('Erreur réseau, réessayez')
     } finally {
       setLoading(false)
     }
@@ -92,70 +92,70 @@ export default function NewListingPage() {
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F7F8' }}>
-        <div className="text-[#8A8F9A]">Verification...</div>
+        <div className="text-ink-mute">Chargement…</div>
       </div>
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-[#FF5500] text-sm placeholder-gray-500 focus:outline-none transition-all"
-  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#ECECEF' }
-  const labelClass = "block text-sm font-medium text-[#4B5160] mb-1"
+  const inputClass = "field"
+  const inputStyle = {}
+  const labelClass = "mb-1.5 block text-sm font-semibold text-ink"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/annonces" className="text-sm text-[#8A8F9A] hover:underline transition-colors">← Retour</Link>
-        <h1 className="text-2xl font-bold text-[#FF5500] mt-3">Publier une annonce</h1>
-        <p className="text-[#8A8F9A] text-sm mt-1">Votre annonce sera visible apres validation par notre equipe</p>
+        <Link href="/annonces" className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft hover:bg-white">← Retour</Link>
+        <h1 className="display mt-3 text-4xl">Publier une annonce</h1>
+        <p className="mt-1 text-ink-soft">Votre annonce est relue par notre équipe avant sa mise en ligne.</p>
       </div>
 
-      <div className="flex gap-2 mb-8">
-        {[1, 2, 3, 4].map(s => (
-          <div key={s} className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#FF5500' : '#FFFFFF', color: step >= s ? 'white' : '#8A8F9A', border: step >= s ? 'none' : '1px solid #ECECEF' }}>
-              {s}
-            </div>
-            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#FF5500' : '#ECECEF') : 'transparent' }} />
-          </div>
-        ))}
+      <div className="mb-8">
+        <div className="grid grid-cols-4 gap-2 text-xs font-bold">
+          {['Véhicule', 'Offre', 'Vérification', 'Photos'].map((label, i) => (
+            <span key={label} className={step >= i + 1 ? 'text-brand' : 'text-ink-mute'}>{i + 1}. {label}</span>
+          ))}
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-rule">
+          <div className="h-full rounded-full bg-gradient-to-r from-brand to-[#FF8A3D] transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }} />
+        </div>
       </div>
 
-      {error && <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
+      {error && <div className="mb-6 rounded-2xl bg-stop-soft p-4 text-sm font-semibold text-stop">{error}</div>}
 
       {step === 1 && (
-        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-          <h2 className="font-bold text-[#FF5500]">Informations véhicule</h2>
+        <div className="step-in space-y-5 rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)]">
+          <h2 className="text-xl font-extrabold tracking-tight">Informations véhicule</h2>
 
           <div>
-            <label className={labelClass}>Titre <span className="text-red-500">*</span></label>
+            <label className={labelClass}>Titre <span className="text-brand">*</span></label>
             <input type="text" value={form.title} onChange={e => update('title', e.target.value)} placeholder="Ex: Tesla Model 3 - 2022 - Électrique - VTC" className={inputClass} style={inputStyle} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Marque <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Marque <span className="text-brand">*</span></label>
               <input type="text" value={form.brand} onChange={e => update('brand', e.target.value)} placeholder="Ex: Peugeot, Tesla..." list="brand-suggestions" className={inputClass} style={inputStyle} />
               <datalist id="brand-suggestions">
                 {BRAND_SUGGESTIONS.map(b => <option key={b} value={b} />)}
               </datalist>
             </div>
             <div>
-              <label className={labelClass}>Modèle <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Modèle <span className="text-brand">*</span></label>
               <input type="text" value={form.model} onChange={e => update('model', e.target.value)} placeholder="Ex: 508, Model 3..." className={inputClass} style={inputStyle} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className={labelClass}>Année <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Année <span className="text-brand">*</span></label>
               <input type="number" value={form.year} onChange={e => update('year', e.target.value)} min="2000" max="2027" className={inputClass} style={inputStyle} />
             </div>
             <div>
-              <label className={labelClass}>Kilométrage <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Kilométrage <span className="text-brand">*</span></label>
               <input type="number" value={form.mileage} onChange={e => update('mileage', e.target.value)} placeholder="42000" className={inputClass} style={inputStyle} />
             </div>
             <div>
-              <label className={labelClass}>Places <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Places <span className="text-brand">*</span></label>
               <select value={form.seats} onChange={e => update('seats', e.target.value)} className={inputClass} style={inputStyle}>
                 {[2,4,5,6,7,8,9].map(n => <option key={n} value={n} style={{ backgroundColor: '#FFFFFF' }}>{n}</option>)}
               </select>
@@ -164,7 +164,7 @@ export default function NewListingPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Énergie <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Énergie <span className="text-brand">*</span></label>
               <select value={form.fuelType} onChange={e => update('fuelType', e.target.value)} className={inputClass} style={inputStyle}>
                 <option value="electric" style={{ backgroundColor: '#FFFFFF' }}>Électrique</option>
                 <option value="hybrid" style={{ backgroundColor: '#FFFFFF' }}>Hybride</option>
@@ -173,7 +173,7 @@ export default function NewListingPage() {
               </select>
             </div>
             <div>
-              <label className={labelClass}>Transmission <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Transmission <span className="text-brand">*</span></label>
               <select value={form.transmission} onChange={e => update('transmission', e.target.value)} className={inputClass} style={inputStyle}>
                 <option value="automatic" style={{ backgroundColor: '#FFFFFF' }}>Automatique</option>
                 <option value="manual" style={{ backgroundColor: '#FFFFFF' }}>Manuelle</option>
@@ -187,7 +187,7 @@ export default function NewListingPage() {
               <input type="text" value={form.color} onChange={e => update('color', e.target.value)} placeholder="Noir, Blanc..." className={inputClass} style={inputStyle} />
             </div>
             <div>
-              <label className={labelClass}>Ville <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Ville <span className="text-brand">*</span></label>
               <input type="text" value={form.locationCity} onChange={e => update('locationCity', e.target.value)} placeholder="Paris" className={inputClass} style={inputStyle} />
             </div>
           </div>
@@ -202,18 +202,18 @@ export default function NewListingPage() {
             </label>
           </div>
 
-          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="w-full text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
+          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="btn btn-brand w-full disabled:opacity-50">
             Suivant →
           </button>
         </div>
       )}
 
       {step === 2 && (
-        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-          <h2 className="font-bold text-[#FF5500]">Offre commerciale</h2>
+        <div className="step-in space-y-5 rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)]">
+          <h2 className="text-xl font-extrabold tracking-tight">Offre commerciale</h2>
 
           <div>
-            <label className={labelClass}>Type d'offre <span className="text-red-500">*</span></label>
+            <label className={labelClass}>Type d'offre <span className="text-brand">*</span></label>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { type: 'sale', dur: 'month', label: 'Vente', active: form.listingType === 'sale' },
@@ -231,7 +231,7 @@ export default function NewListingPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{isLOA ? 'Loyer mensuel (EUR)' : form.listingType === 'rent' ? 'Prix location (EUR)' : 'Prix de vente (EUR)'} <span className="text-red-500">*</span></label>
+              <label className={labelClass}>{isLOA ? 'Loyer mensuel (EUR)' : form.listingType === 'rent' ? 'Prix location (EUR)' : 'Prix de vente (EUR)'} <span className="text-brand">*</span></label>
               <input type="number" value={form.price} onChange={e => update('price', e.target.value)} placeholder={isLOA ? '1500' : '28500'} className={inputClass} style={inputStyle} />
             </div>
             {form.listingType === 'rent' && !isLOA && (
@@ -291,11 +291,11 @@ export default function NewListingPage() {
               <p className="text-sm font-bold" style={{ color: '#16181D' }}>Conditions LOA</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Acompte (EUR) <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>Acompte (EUR) <span className="text-brand">*</span></label>
                   <input type="number" value={form.loaAcompte} onChange={e => update('loaAcompte', e.target.value)} placeholder="1000" className={inputClass} style={inputStyle} />
                 </div>
                 <div>
-                  <label className={labelClass}>Duree du contrat (mois) <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>Duree du contrat (mois) <span className="text-brand">*</span></label>
                   <input type="number" value={form.loaDuree} onChange={e => update('loaDuree', e.target.value)} placeholder="48" className={inputClass} style={inputStyle} />
                 </div>
               </div>
@@ -323,21 +323,21 @@ export default function NewListingPage() {
           )}
 
           <div>
-            <label className={labelClass}>Description <span className="text-red-500">*</span></label>
+            <label className={labelClass}>Description <span className="text-brand">*</span></label>
             <textarea value={form.description} onChange={e => update('description', e.target.value)} rows={6} placeholder="Decrivez l'etat du véhicule, l'historique d'entretien, les options..." className={inputClass + ' resize-none'} style={inputStyle} />
             <p className="text-xs text-gray-600 mt-1">{form.description.length} / 2000 caracteres</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[#4B5160] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>← Retour</button>
-            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>Suivant →</button>
+            <button onClick={() => setStep(1)} className="btn btn-line flex-1">← Retour</button>
+            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="btn btn-brand flex-1 disabled:opacity-50">Suivant →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-          <h2 className="font-bold text-[#FF5500]">Verification et publication</h2>
+        <div className="step-in space-y-5 rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)]">
+          <h2 className="text-xl font-extrabold tracking-tight">Vérification</h2>
 
           <div className="p-4 rounded-xl space-y-2 text-sm" style={{ backgroundColor: '#FFF1E8', border: '1px solid #FFD0B0' }}>
             {[
@@ -351,33 +351,33 @@ export default function NewListingPage() {
               ['Ville', form.locationCity],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between">
-                <span className="text-[#4B5160]">{label}</span>
-                <span className="font-medium text-[#FF5500]">{value}</span>
+                <span className="text-ink-soft">{label}</span>
+                <span className="font-bold text-ink">{value}</span>
               </div>
             ))}
           </div>
 
-          <div className="p-4 rounded-xl" style={{ backgroundColor: '#001020', border: '1px solid #002040' }}>
-            <p className="text-sm font-medium text-blue-400">Information importante</p>
-            <p className="text-xs mt-1" style={{ color: '#1A4A7A' }}>Votre annonce sera verifiee par notre equipe avant d'etre publiee. Vous serez notifie sous 24h.</p>
+          <div className="rounded-2xl bg-paper p-4">
+            <p className="text-sm font-bold">Et ensuite ?</p>
+            <p className="mt-1 text-sm text-ink-soft">Ajoutez vos photos, puis notre équipe relit l’annonce : vous êtes prévenu dès sa mise en ligne.</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[#4B5160] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>← Retour</button>
-            <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
-              {loading ? 'Creation...' : 'Continuer →'}
+            <button onClick={() => setStep(2)} className="btn btn-line flex-1">← Retour</button>
+            <button onClick={handleSubmit} disabled={loading} className="btn btn-brand flex-1 disabled:opacity-50">
+              {loading ? 'Création…' : 'Continuer →'}
             </button>
           </div>
         </div>
       )}
 
       {step === 4 && listingId && (
-        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-          <h2 className="font-bold text-[#FF5500]">Photos du véhicule</h2>
-          <p className="text-sm text-[#8A8F9A]">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
+        <div className="step-in space-y-5 rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)]">
+          <h2 className="text-xl font-extrabold tracking-tight">Photos du véhicule</h2>
+          <p className="text-sm text-[#8A8F9A]">Ajoutez au moins 3 photos. La première sera la photo principale.</p>
           <PhotoUploader listingId={listingId} onComplete={() => router.push(`/annonces/${listingId}`)} />
-          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-xl text-sm text-[#8A8F9A] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>
-            Passer cette etape (photos plus tard)
+          <button onClick={() => router.push(`/annonces/${listingId}`)} className="btn btn-line w-full">
+            Ajouter les photos plus tard
           </button>
         </div>
       )}

@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { PricePlate, KindTag } from '../../components/ui'
+import { motion, AnimatePresence } from 'motion/react'
+import { ArrowLeft, BadgeCheck, CalendarClock, CarFront, Check, ChevronLeft, ChevronRight, Flag, Fuel, Gauge, Heart, MapPin, Palette, Route, Settings2, ShieldCheck, Users, Wallet, X } from 'lucide-react'
+import { PricePlate, KindTag, FUEL_LABELS } from '../../components/ui'
 
 interface Listing {
   id: string
@@ -130,263 +132,262 @@ export default function AnnonceDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse" style={{ backgroundColor: '#F7F7F8' }}>
-        <div className="h-80 rounded-[20px] mb-6" style={{ backgroundColor: '#ECECEF' }} />
-        <div className="h-8 rounded w-2/3 mb-4" style={{ backgroundColor: '#ECECEF' }} />
+      <div className="mx-auto max-w-6xl animate-pulse px-4 py-8">
+        <div className="mb-6 aspect-[16/9] rounded-[28px] bg-rule/70" />
+        <div className="mb-3 h-9 w-2/3 rounded-full bg-rule/70" />
+        <div className="h-6 w-1/3 rounded-full bg-rule/70" />
       </div>
     )
   }
 
   if (!listing) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center" style={{ backgroundColor: '#F7F7F8' }}>
-        <p className="text-gray-400 text-lg">Annonce introuvable</p>
-        <Link href="/annonces" className="text-sm mt-2 inline-block hover:underline" style={{ color: '#16181D' }}>
-          Retour aux annonces
-        </Link>
+      <div className="mx-auto max-w-xl px-4 py-24 text-center">
+        <CarFront className="mx-auto h-14 w-14 text-brand/40" strokeWidth={1.4} />
+        <p className="display mt-4 text-3xl">Annonce introuvable</p>
+        <p className="mt-2 text-ink-soft">Elle a peut-être été vendue ou retirée.</p>
+        <Link href="/annonces" className="btn btn-brand mt-6">Voir les annonces</Link>
       </div>
     )
   }
 
-  const fuelLabels: Record<string, string> = {
-    electric: 'Électrique', hybrid: 'Hybride', diesel: 'Diesel', gasoline: 'Essence'
-  }
+  const images = listing.images
+  const hasImages = images.length > 0
+  const certified = listing.user.company?.verificationStatus === 'verified'
+  const isRental = listing.listingType === 'rent' && listing.rentDuration !== 'loa'
+  const sellerName = listing.user.companyName || listing.user.name
+  const prev = () => setCurrentImage(i => (i - 1 + images.length) % images.length)
+  const next = () => setCurrentImage(i => (i + 1) % images.length)
+
+  const specs = [
+    { icon: CalendarClock, label: 'Année', value: listing.year.toString() },
+    { icon: Gauge, label: 'Kilométrage', value: `${listing.mileage.toLocaleString('fr-FR')} km` },
+    { icon: Fuel, label: 'Énergie', value: FUEL_LABELS[listing.fuelType] ?? listing.fuelType },
+    { icon: Settings2, label: 'Boîte', value: listing.transmission === 'automatic' ? 'Automatique' : 'Manuelle' },
+    { icon: Users, label: 'Places', value: listing.seats.toString() },
+    { icon: Palette, label: 'Couleur', value: listing.color || 'Non précisée' },
+  ]
+
+  const rentalTerms = [
+    { icon: Wallet, label: 'Caution', value: listing.depositAmount != null ? `${Number(listing.depositAmount).toLocaleString('fr-FR')} €` : 'À demander' },
+    { icon: Route, label: 'Km inclus / semaine', value: listing.includedKmPerWeek != null ? `${listing.includedKmPerWeek.toLocaleString('fr-FR')} km` : 'À demander' },
+    { icon: ShieldCheck, label: 'Assurance', value: listing.insuranceIncluded == null ? 'À demander' : listing.insuranceIncluded ? 'Incluse' : 'Non incluse' },
+    { icon: CalendarClock, label: 'Durée minimale', value: listing.minRentalWeeks ? `${listing.minRentalWeeks} semaine(s)` : 'Sans minimum' },
+  ]
+  const availableLater = !!listing.availableFrom && new Date(listing.availableFrom) > new Date()
+  const quickQuestions = isRental
+    ? ['Est-il disponible ?', 'Puis-je le voir cette semaine ?', 'Quelles sont les conditions ?']
+    : ['Est-il toujours disponible ?', 'Le prix est-il négociable ?', 'Puis-je le voir ?']
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F7F7F8' }}>
-
+    <div className="mx-auto max-w-6xl px-4 py-6">
       {/* MODAL SIGNALEMENT */}
-      {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <div className="w-full max-w-md rounded-[20px] p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-            {reportSent ? (
-              <div className="text-center py-4">
-                <div className="text-4xl mb-3">✅</div>
-                <p className="font-bold" style={{ color: '#16181D' }}>Signalement envoyé !</p>
-                <p className="text-sm mt-1" style={{ color: '#8A8F9A' }}>Notre equipe va examiner cette annonce.</p>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold" style={{ color: '#16181D' }}>Signaler cette annonce</h3>
-                  <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+      <AnimatePresence>
+        {showReportModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/40 px-4 pb-4 backdrop-blur-sm sm:items-center">
+            <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[var(--shadow-lift)]">
+              {reportSent ? (
+                <div className="py-6 text-center">
+                  <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-go text-white"><Check className="h-7 w-7" strokeWidth={3} /></span>
+                  <p className="mt-4 text-lg font-extrabold">Signalement envoyé</p>
+                  <p className="mt-1 text-sm text-ink-soft">Notre équipe va examiner cette annonce.</p>
                 </div>
-
-                <p className="text-sm mb-4" style={{ color: '#8A8F9A' }}>Pourquoi signalez-vous cette annonce ?</p>
-
-                <div className="space-y-2 mb-4">
-                  {[
-                    'Annonce frauduleuse ou arnaque',
-                    'Prix abusif ou trompeur',
-                    'Photos ne correspondant pas au véhicule',
-                    'Informations incorrectes ou mensongeres',
-                    'Véhicule déjà vendu',
-                    'Contenu inapproprie',
-                    'Autre raison',
-                  ].map(reason => (
-                    <button key={reason} onClick={() => setReportReason(reason)}
-                      className="w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all"
-                      style={{
-                        backgroundColor: reportReason === reason ? '#FFF1E8' : '#F7F7F8',
-                        border: `1px solid ${reportReason === reason ? '#16181D' : '#ECECEF'}`,
-                        color: reportReason === reason ? '#16181D' : '#16181D',
-                      }}>
-                      {reason}
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-extrabold">Signaler cette annonce</h3>
+                    <button onClick={() => setShowReportModal(false)} aria-label="Fermer" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-paper"><X className="h-5 w-5" /></button>
+                  </div>
+                  <div className="mb-4 space-y-2">
+                    {[
+                      'Annonce frauduleuse ou arnaque',
+                      'Prix abusif ou trompeur',
+                      'Photos ne correspondant pas au véhicule',
+                      'Informations incorrectes ou mensongères',
+                      'Véhicule déjà vendu',
+                      'Contenu inapproprié',
+                      'Autre raison',
+                    ].map(reason => (
+                      <button key={reason} onClick={() => setReportReason(reason)}
+                        className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${reportReason === reason ? 'border-brand bg-brand-soft text-brand' : 'border-rule hover:border-ink-mute'}`}>
+                        {reason}
+                      </button>
+                    ))}
+                  </div>
+                  {reportError && <p className="mb-3 text-sm text-stop">{reportError}</p>}
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowReportModal(false)} className="btn btn-line flex-1">Annuler</button>
+                    <button onClick={submitReport} disabled={reportLoading || !reportReason} className="btn btn-brand flex-1 disabled:opacity-50">
+                      {reportLoading ? 'Envoi…' : 'Signaler'}
                     </button>
-                  ))}
-                </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                {reportError && (
-                  <p className="text-sm text-red-500 mb-3">{reportError}</p>
-                )}
-
-                <div className="flex gap-2">
-                  <button onClick={() => setShowReportModal(false)} className="flex-1 py-2.5 rounded-xl text-sm transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF', color: '#8A8F9A' }}>
-                    Annuler
-                  </button>
-                  <button onClick={submitReport} disabled={reportLoading || !reportReason} className="flex-1 py-2.5 rounded-xl text-sm text-white font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
-                    {reportLoading ? 'Envoi...' : 'Signaler'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <Link href="/annonces" className="text-sm mb-4 inline-flex items-center gap-1 hover:underline transition-colors" style={{ color: '#8A8F9A' }}>
-        ← Retour aux annonces
+      <Link href="/annonces" className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft hover:bg-white">
+        <ArrowLeft className="h-4 w-4" /> Retour aux annonces
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
-
+      <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
         {/* COLONNE GAUCHE */}
-        <div className="lg:col-span-2 space-y-4">
-
+        <div className="min-w-0 space-y-6">
           {/* GALERIE */}
-          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-            <div className="relative h-72" style={{ backgroundColor: '#F1F1F3' }}>
-              {listing.images.length > 0 ? (
-                <img src={listing.images[currentImage]?.imageUrl} alt={listing.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center" style={{ color: '#C4C7CE' }}>
-                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="overflow-hidden rounded-[28px] bg-white shadow-[var(--shadow-soft)]">
+            <div className="relative aspect-[16/10] bg-gradient-to-br from-brand-soft to-paper">
+              <AnimatePresence mode="wait">
+                {hasImages ? (
+                  <motion.img key={currentImage} src={images[currentImage]?.imageUrl} alt={listing.title}
+                    initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
+                    className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-brand/35"><CarFront className="h-24 w-24" strokeWidth={1.2} /></div>
+                )}
+              </AnimatePresence>
+              <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
+                <KindTag listingType={listing.listingType} rentDuration={listing.rentDuration} />
+                {listing.vtcCompliant && <span className="chip bg-go text-white shadow-sm"><BadgeCheck className="h-3.5 w-3.5" /> Conforme VTC</span>}
+              </div>
+              <button onClick={toggleFavorite} disabled={favLoading} aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow-sm transition active:scale-90">
+                <motion.span key={String(isFavorite)} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}>
+                  <Heart className={`h-5 w-5 ${isFavorite ? 'fill-brand text-brand' : 'text-ink'}`} />
+                </motion.span>
+              </button>
+              {images.length > 1 && (
+                <>
+                  <button onClick={prev} aria-label="Photo précédente" className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm"><ChevronLeft className="h-5 w-5" /></button>
+                  <button onClick={next} aria-label="Photo suivante" className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm"><ChevronRight className="h-5 w-5" /></button>
+                  <span className="absolute bottom-4 right-4 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-bold text-white">{currentImage + 1} / {images.length}</span>
+                </>
               )}
             </div>
-            {listing.images.length > 1 && (
-              <div className="flex gap-2 p-3 overflow-x-auto" style={{ backgroundColor: '#FAFAFA' }}>
-                {listing.images.map((img, i) => (
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto p-3">
+                {images.map((img, i) => (
                   <button key={img.id} onClick={() => setCurrentImage(i)}
-                    className="flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors"
-                    style={{ borderColor: currentImage === i ? '#FF5500' : '#ECECEF' }}>
-                    <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
+                    className={`h-14 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 transition ${currentImage === i ? 'ring-brand' : 'ring-transparent opacity-70 hover:opacity-100'}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.imageUrl} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* TITRE & PRIX */}
-          <div className="panel p-6">
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              <KindTag listingType={listing.listingType} rentDuration={listing.rentDuration} />
-              {listing.vtcCompliant && <span className="chip bg-go text-white">Conforme VTC</span>}
-            </div>
-            <h1 className="display text-4xl sm:text-5xl">{listing.title}</h1>
-            <p className="mt-2 text-sm text-ink-mute">{listing.locationCity} · publiée le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}</p>
-            <div className="mt-5">
-              <PricePlate price={listing.price} listingType={listing.listingType} rentDuration={listing.rentDuration} size="lg" />
-            </div>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.5 }}>
+            <h1 className="display text-3xl sm:text-4xl">{listing.title}</h1>
+            <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-ink-mute">
+              <MapPin className="h-4 w-4" /> {listing.locationCity} · publiée le {new Date(listing.createdAt).toLocaleDateString('fr-FR')}
+            </p>
+            <div className="mt-4"><PricePlate price={listing.price} listingType={listing.listingType} rentDuration={listing.rentDuration} size="lg" /></div>
+          </motion.div>
 
-          {/* FICHE TECHNIQUE */}
-          <div className="panel overflow-hidden">
-            <h2 className="px-6 pb-1 pt-5 text-xl font-extrabold tracking-tight">Fiche technique</h2>
-            <dl className="grid grid-cols-2 gap-1 p-2 sm:grid-cols-4">
-              {[
-                ['Marque', listing.brand],
-                ['Modèle', listing.model],
-                ['Année', listing.year.toString()],
-                ['Kilométrage', `${listing.mileage.toLocaleString('fr-FR')} km`],
-                ['Énergie', fuelLabels[listing.fuelType]],
-                ['Boîte', listing.transmission === 'automatic' ? 'Automatique' : 'Manuelle'],
-                ['Couleur', listing.color || 'Non précisée'],
-                ['Places', listing.seats.toString()],
-              ].map(([label, value]) => (
-                <div key={label} className="px-5 py-3">
-                  <dt className="text-xs font-semibold text-ink-mute">{label}</dt>
-                  <dd className="mt-1 text-lg font-bold">{value}</dd>
-                </div>
+          {/* CARACTERISTIQUES */}
+          <section>
+            <h2 className="mb-3 text-xl font-extrabold tracking-tight">Caractéristiques</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {specs.map((sp, i) => (
+                <motion.div key={sp.label} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}
+                  className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><sp.icon className="h-5 w-5" /></span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-medium text-ink-mute">{sp.label}</span>
+                    <span className="block truncate font-bold">{sp.value}</span>
+                  </span>
+                </motion.div>
               ))}
-            </dl>
-          </div>
+            </div>
+          </section>
 
           {/* CONDITIONS DE LOCATION */}
-          {listing.listingType === 'rent' && listing.rentDuration !== 'loa' && (
-            <div className="panel overflow-hidden">
-              <h2 className="px-6 pb-1 pt-5 text-xl font-extrabold tracking-tight">Conditions de location</h2>
-              <dl className="grid grid-cols-2 gap-1 p-2 sm:grid-cols-4">
-                {[
-                  ['Caution', listing.depositAmount != null ? `${Number(listing.depositAmount).toLocaleString('fr-FR')} €` : 'À demander'],
-                  ['Km inclus / sem.', listing.includedKmPerWeek != null ? `${listing.includedKmPerWeek.toLocaleString('fr-FR')} km` : 'À demander'],
-                  ['Assurance', listing.insuranceIncluded == null ? 'À demander' : listing.insuranceIncluded ? 'Incluse' : 'Non incluse'],
-                  ['Durée minimale', listing.minRentalWeeks ? `${listing.minRentalWeeks} sem.` : 'Sans minimum'],
-                ].map(([label, value]) => (
-                  <div key={label} className="px-5 py-3">
-                    <dt className="text-xs font-semibold text-ink-mute">{label}</dt>
-                    <dd className="mt-1 text-lg font-bold">{value}</dd>
+          {isRental && (
+            <section className="rounded-[28px] bg-gradient-to-br from-brand to-[#FF8A3D] p-6 text-white">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xl font-extrabold tracking-tight">Conditions de location</h2>
+                <span className="chip bg-white/20 text-white">{availableLater ? `Disponible le ${new Date(listing.availableFrom as string).toLocaleDateString('fr-FR')}` : 'Disponible maintenant'}</span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {rentalTerms.map(t => (
+                  <div key={t.label} className="rounded-2xl bg-white/15 p-3 backdrop-blur">
+                    <t.icon className="h-5 w-5 text-white/85" />
+                    <p className="mt-2 text-xs text-white/80">{t.label}</p>
+                    <p className="font-bold">{t.value}</p>
                   </div>
                 ))}
-              </dl>
-              <div className="space-y-1 px-6 py-4 text-sm">
-                <p>
-                  <span className="font-semibold">Disponibilité : </span>
-                  {listing.availableFrom && new Date(listing.availableFrom) > new Date()
-                    ? `à partir du ${new Date(listing.availableFrom).toLocaleDateString('fr-FR')}`
-                    : 'disponible maintenant'}
-                </p>
-                {listing.driverRequirements && <p><span className="font-semibold">Conditions : </span>{listing.driverRequirements}</p>}
               </div>
-            </div>
+              {listing.driverRequirements && <p className="mt-4 text-sm text-white/90"><span className="font-bold">Conditions : </span>{listing.driverRequirements}</p>}
+            </section>
           )}
 
           {/* DESCRIPTION */}
-          <div className="panel-soft p-6">
-            <h2 className="display mb-3 text-2xl">Description</h2>
+          <section className="rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)]">
+            <h2 className="mb-3 text-xl font-extrabold tracking-tight">Description</h2>
             <p className="whitespace-pre-wrap leading-relaxed text-ink-soft">{listing.description}</p>
-          </div>
+          </section>
 
-          {/* BOUTON SIGNALER */}
-          <div className="text-center">
-            <button onClick={() => setShowReportModal(true)} className="text-xs hover:underline transition-colors" style={{ color: '#C4C7CE' }}>
-              Signaler cette annonce
-            </button>
-          </div>
+          <button onClick={() => setShowReportModal(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-mute hover:text-stop">
+            <Flag className="h-3.5 w-3.5" /> Signaler cette annonce
+          </button>
         </div>
 
-        {/* COLONNE DROITE */}
-        <div className="space-y-4">
-          <div className="rounded-[20px] p-5 sticky top-24" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: '#FF5500' }}>
-                {listing.user.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-sm" style={{ color: '#16181D' }}>{listing.user.companyName || listing.user.name}</p>
-                {listing.user.company?.verificationStatus === 'verified' && (
-                  <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-0.5" style={{ backgroundColor: '#F0FFF4', color: '#15803D' }}>🛡️ Pro certifié</span>
-                )}
-                <p className="text-xs" style={{ color: '#8A8F9A' }}>Membre depuis {new Date(listing.user.createdAt).getFullYear()}</p>
+        {/* COLONNE DROITE : vendeur et contact */}
+        <aside>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.5 }}
+            className="sticky top-24 rounded-[28px] bg-white p-6 shadow-[var(--shadow-lift)]">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-lg font-bold text-white">
+                {sellerName.charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-extrabold">{sellerName}</p>
+                <p className="text-xs text-ink-mute">Membre depuis {new Date(listing.user.createdAt).getFullYear()}</p>
               </div>
             </div>
-
-            {messageSent ? (
-              <div className="p-3 rounded-xl text-sm text-center" style={{ backgroundColor: '#F0FFF4', border: '1px solid #BBF7D0', color: '#15803D' }}>
-                Message envoyé ! Le vendeur vous repondra bientot.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <textarea
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  placeholder="Bonjour, je suis interesse par votre annonce..."
-                  rows={4}
-                  className="w-full text-sm rounded-xl px-3 py-2.5 focus:outline-none transition-all resize-none"
-                  style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF', color: '#16181D' }}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={sendingMessage || !message.trim()}
-                  className="w-full text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
-                  style={{ backgroundColor: '#FF5500' }}
-                >
-                  {sendingMessage ? 'Envoi...' : 'Contacter le vendeur'}
-                </button>
-              </div>
+            {certified && (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-go-soft px-3 py-1 text-xs font-bold text-go"><ShieldCheck className="h-3.5 w-3.5" /> Pro certifié · SIRET vérifié</p>
             )}
 
-            <button
-              onClick={toggleFavorite}
-              disabled={favLoading}
-              className="mt-3 w-full py-2 rounded-xl text-sm font-medium transition-all"
-              style={{
-                backgroundColor: isFavorite ? '#FFF0F0' : '#F7F7F8',
-                border: `1px solid ${isFavorite ? '#FFD0D0' : '#ECECEF'}`,
-                color: isFavorite ? '#B42318' : '#4B5160',
-              }}
-            >
-              {favLoading ? '...' : isFavorite ? '♥ Retire des favoris' : '♡ Ajouter aux favoris'}
-            </button>
-
-            <div className="mt-4 pt-4 text-center" style={{ borderTop: '1px solid #F1F1F3' }}>
-              <p className="text-xs" style={{ color: '#8A8F9A' }}>{listing._count.favorites} favori(s) · {listing._count.messages} message(s)</p>
+            <div className="mt-5">
+              <AnimatePresence mode="wait">
+                {messageSent ? (
+                  <motion.div key="sent" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                    className="rounded-2xl bg-go-soft p-4 text-center text-sm font-semibold text-go">
+                    <Check className="mx-auto mb-1 h-6 w-6" strokeWidth={3} />
+                    Message envoyé. {sellerName} vous répondra dans votre messagerie.
+                  </motion.div>
+                ) : (
+                  <motion.div key="form" exit={{ opacity: 0 }} className="space-y-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {quickQuestions.map(q => (
+                        <button key={q} type="button" onClick={() => setMessage(m => (m ? `${m} ${q}` : `Bonjour, ${q.charAt(0).toLowerCase()}${q.slice(1)}`))}
+                          className="rounded-full border border-rule px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-brand hover:text-brand">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4}
+                      placeholder="Bonjour, je suis intéressé par votre véhicule…" className="field resize-none" />
+                    <button onClick={sendMessage} disabled={sendingMessage || !message.trim()} className="btn btn-brand w-full disabled:opacity-50">
+                      {sendingMessage ? 'Envoi…' : isRental ? 'Contacter le loueur' : 'Contacter le vendeur'}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
-        </div>
 
+            <p className="mt-4 border-t border-rule pt-4 text-center text-xs text-ink-mute">
+              {listing._count.favorites} favori(s) · {listing._count.messages} message(s) · aucune commission prélevée
+            </p>
+          </motion.div>
+        </aside>
       </div>
     </div>
   )

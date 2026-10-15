@@ -110,39 +110,47 @@ model RefreshToken {
 }
 
 model Listing {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId          String           @map("user_id") @db.Uuid
-  title           String           @db.VarChar(200)
-  brand           String           @db.VarChar(50)
-  model           String           @db.VarChar(80)
-  year            Int              @db.SmallInt
-  mileage         Int
-  fuelType        FuelType         @map("fuel_type")
-  transmission    TransmissionType
-  color           String?          @db.VarChar(40)
-  seats           Int              @default(5) @db.SmallInt
-  vtcCompliant    Boolean          @default(false) @map("vtc_compliant")
-  licenseUrl      String?          @map("license_url")
-  listingType     ListingType      @map("listing_type")
-  price           Decimal          @db.Decimal(10, 2)
-  rentDuration    RentDuration?    @map("rent_duration")
-  description     String
-  locationCity    String           @map("location_city") @db.VarChar(100)
-  status          ListingStatus    @default(pending)
-  expiresAt       DateTime?        @map("expires_at") @db.Timestamptz
-  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz
-  viewsCount      Int              @default(0) @map("views_count")
-  rejectionReason String?          @map("rejection_reason")
-  priorityReview  Boolean          @default(false) @map("priority_review") // pack Pro : moderation sous 12 h
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String           @map("user_id") @db.Uuid
+  title              String           @db.VarChar(200)
+  brand              String           @db.VarChar(50)
+  model              String           @db.VarChar(80)
+  year               Int              @db.SmallInt
+  mileage            Int
+  fuelType           FuelType         @map("fuel_type")
+  transmission       TransmissionType
+  color              String?          @db.VarChar(40)
+  seats              Int              @default(5) @db.SmallInt
+  vtcCompliant       Boolean          @default(false) @map("vtc_compliant")
+  licenseUrl         String?          @map("license_url")
+  listingType        ListingType      @map("listing_type")
+  price              Decimal          @db.Decimal(10, 2)
+  rentDuration       RentDuration?    @map("rent_duration")
+  description        String
+  locationCity       String           @map("location_city") @db.VarChar(100)
+  status             ListingStatus    @default(pending)
+  expiresAt          DateTime?        @map("expires_at") @db.Timestamptz
+  deletedAt          DateTime?        @map("deleted_at") @db.Timestamptz
+  viewsCount         Int              @default(0) @map("views_count")
+  rejectionReason    String?          @map("rejection_reason")
+  priorityReview     Boolean          @default(false) @map("priority_review") // pack Pro : moderation sous 12 h
+  // Conditions de location (location a la semaine / au mois)
+  depositAmount      Decimal?         @map("deposit_amount") @db.Decimal(10, 2)
+  includedKmPerWeek  Int?             @map("included_km_per_week")
+  insuranceIncluded  Boolean?         @map("insurance_included")
+  minRentalWeeks     Int?             @map("min_rental_weeks") @db.SmallInt
+  driverRequirements String?          @map("driver_requirements") @db.VarChar(500)
+  availableFrom      DateTime?        @map("available_from") @db.Date // loue jusqu'a cette date
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  images    ListingImage[]
-  messages  Message[]
-  favorites Favorite[]
-  reports   Report[]
-  reviews   Review[]
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images     ListingImage[]
+  messages   Message[]
+  favorites  Favorite[]
+  reports    Report[]
+  reviews    Review[]
+  dailyStats ListingDailyStat[]
 
   @@index([userId])
   @@index([status])
@@ -450,6 +458,7 @@ model VerificationReview {
 enum PlanTier {
   standard
   pro
+  flotte
 }
 
 enum BillingInterval {
@@ -484,4 +493,40 @@ model Subscription {
 
   @@index([status])
   @@map("subscriptions")
+}
+
+// ============================================================
+// STATISTIQUES (pack Flotte)
+// ============================================================
+
+// Vues et contacts par annonce et par jour
+model ListingDailyStat {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  day       DateTime @db.Date
+  views     Int      @default(0)
+  contacts  Int      @default(0)
+  favorites Int      @default(0)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, day])
+  @@index([day])
+  @@map("listing_daily_stats")
+}
+
+// Recherches anonymes (aucune donnee personnelle) : alimentent le barometre de la demande
+model SearchEvent {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  city         String?       @db.VarChar(100)
+  listingType  ListingType?  @map("listing_type")
+  rentDuration RentDuration? @map("rent_duration")
+  fuelType     FuelType?     @map("fuel_type")
+  query        String?       @db.VarChar(100)
+  resultsCount Int           @map("results_count")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([createdAt])
+  @@index([city])
+  @@map("search_events")
 }

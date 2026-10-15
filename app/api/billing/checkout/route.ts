@@ -1,36 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
-import { tierFromSubscription } from '@/lib/plans'
-import { getStripe, isBillingConfigured, priceIdFor, trialDaysFor, appUrl, Interval } from '@/lib/stripe'
+import { tierFromSubscription, isPaidTier, PaidTier } from '@/lib/plans'
+import { getStripe, isBillingConfigured, priceIdFor, trialDaysFor, appUrl, syncSubscription, Interval } from '@/lib/stripe'
 
-// Cree une session de paiement Stripe (page hebergee) pour le pack Pro
+// Souscription a un pack payant (Pro ou Flotte) via la page de paiement Stripe,
+// ou changement de pack pour un abonne existant (prorata calcule par Stripe).
 export async function POST(req: NextRequest) {
   const user = getAuthUser(req)
   if (!user) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
-  if (!isBillingConfigured()) {
-    return NextResponse.json({ error: 'BILLING_DISABLED', message: 'Le paiement en ligne ouvre bientot' }, { status: 503 })
-  }
   try {
-    const { interval } = await req.json()
-    if (interval !== 'month' && interval !== 'year') {
-      return NextResponse.json({ error: 'INVALID_INTERVAL' }, { status: 400 })
+    const body = await req.json()
+    const tier: PaidTier = isPaidTier(body.tier) ? body.tier : 'pro'
+    const interval: Interval = body.interval === 'year' ? 'year' : 'month'
+    if (!isBillingConfigured(tier)) {
+      return NextResponse.json({ error: 'BILLING_DISABLED', message: 'Le paiement en ligne de ce pack ouvre bientôt' }, { status: 503 })
     }
     const account = await prisma.user.findUnique({
       where: { id: user.sub },
       select: { email: true, subscription: true },
     })
     if (!account) return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
-    // Deja Pro (y compris resilie mais encore dans la periode payee) : tout se gere depuis le portail client
-    if (tierFromSubscription(account.subscription) === 'pro') {
-      return NextResponse.json({ error: 'ALREADY_PRO', message: 'Vous etes deja abonne au pack Pro. Gerez votre abonnement depuis votre espace.' }, { status: 409 })
+
+    const current = tierFromSubscription(account.subscription)
+    const stripe = getStripe()
+
+    // Deja abonne : on change le prix de l'abonnement existant
+    if (current !== 'standard' && account.subscription?.stripeSubscriptionId) {
+      if (current === tier && account.subscription.interval === interval) {
+        return NextResponse.json({ error: 'ALREADY_SUBSCRIBED', message: `Vous êtes déjà abonné au pack ${tier === 'pro' ? 'Pro' : 'Flotte'}.` }, { status: 409 })
+      }
+      const sub = await stripe.subscriptions.retrieve(account.subscription.stripeSubscriptionId)
+      const updated = await stripe.subscriptions.update(sub.id, {
+        items: [{ id: sub.items.data[0].id, price: priceIdFor(tier, interval) }],
+        proration_behavior: 'create_prorations',
+        cancel_at_period_end: false,
+        metadata: { ...sub.metadata, userId: user.sub },
+      })
+      await syncSubscription(updated)
+      return NextResponse.json({ updated: true, tier })
     }
 
-    const trialDays = trialDaysFor(interval as Interval, !!account.subscription)
+    const trialDays = trialDaysFor(tier, interval, !!account.subscription)
     const taxRate = process.env.STRIPE_TAX_RATE_ID
-    const session = await getStripe().checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      line_items: [{ price: priceIdFor(interval as Interval), quantity: 1 }],
+      line_items: [{ price: priceIdFor(tier, interval), quantity: 1 }],
       ...(account.subscription?.stripeCustomerId
         ? { customer: account.subscription.stripeCustomerId }
         : { customer_email: account.email }),
@@ -51,6 +66,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('[BILLING CHECKOUT]', error)
-    return NextResponse.json({ error: 'SERVER_ERROR', message: 'Impossible de demarrer le paiement' }, { status: 500 })
+    return NextResponse.json({ error: 'SERVER_ERROR', message: 'Impossible de démarrer le paiement' }, { status: 500 })
   }
 }

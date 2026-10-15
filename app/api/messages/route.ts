@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackListing } from '@/lib/tracking'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { sendMessageNotificationEmail } from '@/lib/email'
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
         message: message.trim(),
       },
     })
+    if (subject.type === 'listing' && user.sub !== info.ownerId) await trackListing(subject.id, 'contacts')
     await prisma.notification.create({
       data: {
         userId: target.receiverId,

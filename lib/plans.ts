@@ -1,6 +1,12 @@
 import { prisma } from './prisma'
 
-export type PlanTier = 'standard' | 'pro'
+export type PlanTier = 'standard' | 'pro' | 'flotte'
+export type PaidTier = Exclude<PlanTier, 'standard'>
+export const PAID_TIERS: PaidTier[] = ['pro', 'flotte']
+
+export function isPaidTier(tier: string): tier is PaidTier {
+  return (PAID_TIERS as string[]).includes(tier)
+}
 
 export interface PlanLimits {
   label: string
@@ -11,6 +17,8 @@ export interface PlanLimits {
   autoRenew: boolean          // Pro : renouvellement automatique a l'expiration
   reviewSlaHours: number      // delai de validation annonce
   priorityReview: boolean
+  advancedStats: boolean      // Flotte : statistiques par vehicule et par jour
+  demandBarometer: boolean    // Flotte : barometre de la demande par ville
 }
 
 // Nombre minimum de photos par annonce, commun aux deux packs
@@ -26,6 +34,8 @@ export const PLANS: Record<PlanTier, PlanLimits> = {
     autoRenew: false,
     reviewSlaHours: 48,
     priorityReview: false,
+    advancedStats: false,
+    demandBarometer: false,
   },
   pro: {
     label: 'Pro',
@@ -36,14 +46,36 @@ export const PLANS: Record<PlanTier, PlanLimits> = {
     autoRenew: true,
     reviewSlaHours: 12,
     priorityReview: true,
+    advancedStats: false,
+    demandBarometer: false,
+  },
+  flotte: {
+    label: 'Flotte',
+    maxActiveListings: 50,
+    minPhotos: MIN_PHOTOS,
+    maxPhotos: 12,
+    listingDurationDays: 60,
+    autoRenew: true,
+    reviewSlaHours: 12,
+    priorityReview: true,
+    advancedStats: true,
+    demandBarometer: true,
   },
 }
 
-// Tarifs du pack Pro (en centimes). L'annuel inclut 2 mois offerts par rapport au mensuel.
-export const PRO_PRICING = {
-  month: { amountCents: 499, trialDays: 30 },
-  year: { amountCents: 4990, trialDays: 0 },
-} as const
+// Tarifs TTC en centimes. L'annuel inclut 2 mois offerts par rapport au mensuel ;
+// le premier mois est offert sur le mensuel (premier abonnement uniquement).
+export const PAID_PRICING: Record<PaidTier, { month: { amountCents: number; trialDays: number }; year: { amountCents: number; trialDays: number } }> = {
+  pro: {
+    month: { amountCents: 499, trialDays: 30 },
+    year: { amountCents: 4990, trialDays: 0 },
+  },
+  flotte: {
+    month: { amountCents: 1299, trialDays: 30 },
+    year: { amountCents: 12990, trialDays: 0 },
+  },
+}
+export const PRO_PRICING = PAID_PRICING.pro
 
 // Statuts qui comptent dans la limite d'annonces
 export const COUNTED_LISTING_STATUSES = ['pending', 'active'] as const
@@ -53,10 +85,10 @@ const PRO_STATUSES = ['trialing', 'active', 'past_due']
 export function tierFromSubscription(
   sub: { tier: string; status: string; currentPeriodEnd: Date | null } | null
 ): PlanTier {
-  if (!sub || sub.tier !== 'pro') return 'standard'
-  if (PRO_STATUSES.includes(sub.status)) return 'pro'
-  // Resilie : le Pro reste actif jusqu'a la fin de la periode payee
-  if (sub.status === 'canceled' && sub.currentPeriodEnd && sub.currentPeriodEnd > new Date()) return 'pro'
+  if (!sub || !isPaidTier(sub.tier)) return 'standard'
+  if (PRO_STATUSES.includes(sub.status)) return sub.tier
+  // Resilie : le pack reste actif jusqu'a la fin de la periode payee
+  if (sub.status === 'canceled' && sub.currentPeriodEnd && sub.currentPeriodEnd > new Date()) return sub.tier
   return 'standard'
 }
 
@@ -89,21 +121,31 @@ export const PLAN_FEATURES: Record<PlanTier, string[]> = {
   standard: [
     `${PLANS.standard.maxActiveListings} annonces actives`,
     `${PLANS.standard.maxPhotos} photos par annonce`,
-    `Annonce en ligne ${PLANS.standard.listingDurationDays} jours, reactivable en 1 clic`,
+    `Annonce en ligne ${PLANS.standard.listingDurationDays} jours, réactivable en 1 clic`,
     `Validation sous ${PLANS.standard.reviewSlaHours} h`,
-    'Messagerie illimitee',
+    'Messagerie illimitée',
     '1 alerte de recherche',
     'Nombre de vues de vos annonces',
   ],
   pro: [
     `${PLANS.pro.maxActiveListings} annonces actives`,
     `${PLANS.pro.maxPhotos} photos par annonce`,
-    `Annonce en ligne ${PLANS.pro.listingDurationDays} jours, renouvelee automatiquement`,
+    `Annonce en ligne ${PLANS.pro.listingDurationDays} jours, renouvelée automatiquement`,
     `Validation prioritaire sous ${PLANS.pro.reviewSlaHours} h`,
-    'Statistiques detaillees (vues, contacts, prix du marche)',
-    'Remontee en tete de liste chaque semaine',
+    'Statistiques détaillées (vues, contacts, prix du marché)',
+    'Remontée en tête de liste chaque semaine',
     'Page vitrine avec logo et avis',
-    'Alertes de recherche illimitees et instantanees',
-    'Sans publicite, support prioritaire',
+    'Alertes de recherche illimitées et instantanees',
+    'Sans publicité, support prioritaire',
+  ],
+  flotte: [
+    `${PLANS.flotte.maxActiveListings} véhicules en ligne`,
+    `${PLANS.flotte.maxPhotos} photos par véhicule`,
+    'Statistiques par véhicule et par jour (vues, contacts, favoris)',
+    'Baromètre de la demande par ville (recherches des chauffeurs)',
+    'Location à la semaine : caution, km inclus, disponibilité',
+    'Renouvellement automatique et validation prioritaire sous 12 h',
+    'Page vitrine flotte et mise en avant locale',
+    'Tous les avantages du pack Pro',
   ],
 }

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { isBillingConfigured } from '@/lib/stripe'
 
-const CHOICES = ['standard', 'pro_month', 'pro_year'] as const
+const CHOICES = ['standard', 'pro_month', 'pro_year', 'flotte_month', 'flotte_year'] as const
 type Choice = typeof CHOICES[number]
 
 // Enregistre le choix fait sur l'affiche des packs apres l'inscription.
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       where: { id: user.sub },
       data: { planChoiceAt: new Date() },
     })
-    const paymentAvailable = isBillingConfigured()
+    const paymentAvailable = choice === 'standard' || isBillingConfigured(choice.startsWith('flotte') ? 'flotte' : 'pro')
     return NextResponse.json({ choice: choice as Choice, paymentAvailable })
   } catch (error) {
     console.error('[PLAN CHOICE]', error)

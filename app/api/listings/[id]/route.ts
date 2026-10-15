@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackListing } from '@/lib/tracking'
+import { rentalTerms } from '@/lib/rentalTerms'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 
@@ -33,6 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         where: { id },
         data: { viewsCount: { increment: 1 } },
       })
+      await trackListing(id, 'views')
     }
 
     return NextResponse.json({ listing })
@@ -80,6 +83,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (Object.keys(data).length > 0 && ['active', 'rejected'].includes(listing.status)) {
       data.status = 'pending'
       data.rejectionReason = null
+    }
+
+    // Conditions de location et disponibilite : mises a jour sans nouvelle moderation
+    if (listing.listingType === 'rent') {
+      const terms = rentalTerms(body)
+      for (const [k, v] of Object.entries(terms)) if (body[k] !== undefined) data[k] = v
     }
 
     const updated = await prisma.listing.update({

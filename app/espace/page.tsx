@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import FleetStats from './FleetStats'
 import { useRouter } from 'next/navigation'
 
 type Profile = 'individual' | 'seller' | 'fleet' | 'provider'
@@ -27,8 +28,8 @@ interface Dashboard {
     company: { legalName: string; tradeName: string | null; verificationStatus: string } | null
   }
   plan: {
-    tier: 'standard' | 'pro'
-    limits: { label: string; maxActiveListings: number; maxPhotos: number; listingDurationDays: number; autoRenew: boolean }
+    tier: 'standard' | 'pro' | 'flotte'
+    limits: { label: string; maxActiveListings: number; maxPhotos: number; listingDurationDays: number; autoRenew: boolean; advancedStats: boolean }
     subscription: { status: string; trialEndsAt: string | null; currentPeriodEnd: string | null } | null
   }
   kpis: {
@@ -120,7 +121,7 @@ export default function EspacePage() {
   }
 
   const { profile, user, plan, kpis } = data
-  const isPro = plan.tier === 'pro'
+  const isPro = plan.tier !== 'standard'
   const atLimit = kpis.countedListings >= kpis.maxListings
   const certified = user.company?.verificationStatus === 'verified'
   const showListings = profile !== 'provider' || data.listings.length > 0
@@ -208,6 +209,19 @@ export default function EspacePage() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* STATISTIQUES AVANCEES (pack Flotte) */}
+          {plan.limits.advancedStats ? (
+            <FleetStats />
+          ) : (profile === 'fleet' || profile === 'seller') && (
+            <div className="panel flex flex-wrap items-center justify-between gap-4 bg-signal-soft p-5">
+              <div>
+                <p className="display text-2xl">Statistiques détaillées et baromètre de la demande</p>
+                <p className="mt-1 text-sm text-ink-soft">Vues et contacts par véhicule et par jour, prix comparé au marché, recherches des chauffeurs dans votre ville.</p>
+              </div>
+              <Link href="/abonnement" className="btn btn-ink">Découvrir le pack Flotte</Link>
+            </div>
+          )}
+
           {/* FLOTTE : capacite */}
           {profile === 'fleet' && (
             <div className="rounded-[4px] p-5" style={card}>

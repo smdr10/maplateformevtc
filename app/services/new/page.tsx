@@ -64,29 +64,29 @@ export default function NewServicePage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0A0F' }}>
-        <div className="text-gray-500">Verification...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F3F1EA' }}>
+        <div className="text-[#6B7789]">Verification...</div>
       </div>
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
-  const inputStyle = { backgroundColor: '#111118', borderColor: '#1A1A2E' }
-  const labelClass = "block text-sm font-medium text-gray-400 mb-1"
+  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-[#0B1F3A] text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#D9D5C9' }
+  const labelClass = "block text-sm font-medium text-[#33465F] mb-1"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/services" className="text-sm text-gray-500 hover:text-white transition-colors">← Retour aux services</Link>
-        <h1 className="text-2xl font-bold text-white mt-3">Proposer mon service</h1>
-        <p className="text-gray-500 text-sm mt-1">Creez votre fiche professionnelle et soyez contacte par des chauffeurs VTC</p>
+        <Link href="/services" className="text-sm text-[#6B7789] hover:underline transition-colors">← Retour aux services</Link>
+        <h1 className="text-2xl font-bold text-[#0B1F3A] mt-3">Proposer mon service</h1>
+        <p className="text-[#6B7789] text-sm mt-1">Creez votre fiche professionnelle et soyez contacte par des chauffeurs VTC</p>
       </div>
 
       {error && (
         <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
       )}
 
-      <div className="rounded-[4px] p-6 space-y-5" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+      <div className="rounded-[4px] p-6 space-y-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
 
         <div>
           <label className={labelClass}>Nom de votre service / entreprise <span className="text-red-500">*</span></label>
@@ -99,10 +99,10 @@ export default function NewServicePage() {
             {CATEGORIES.map(cat => (
               <button key={cat.value} type="button" onClick={() => update('category', cat.value)}
                 className="p-3 rounded-[3px] border-2 text-left transition-all"
-                style={{ borderColor: form.category === cat.value ? '#0B1F3A' : '#1A1A2E', backgroundColor: form.category === cat.value ? '#1A0800' : '#0A0A0F' }}>
+                style={{ borderColor: form.category === cat.value ? '#0B1F3A' : '#D9D5C9', backgroundColor: form.category === cat.value ? '#FFF3CC' : '#F3F1EA' }}>
                 <span className="text-xl block mb-1">{cat.icon}</span>
-                <p className="text-sm font-medium text-white">{cat.label}</p>
-                <p className="text-xs mt-0.5 text-gray-500">{cat.desc}</p>
+                <p className="text-sm font-medium text-[#0B1F3A]">{cat.label}</p>
+                <p className="text-xs mt-0.5 text-[#6B7789]">{cat.desc}</p>
               </button>
             ))}
           </div>
@@ -136,7 +136,7 @@ export default function NewServicePage() {
         </div>
 
         <div className="pt-2 flex gap-3">
-          <Link href="/services" className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 text-center transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
+          <Link href="/services" className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] text-center transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>
             Annuler
           </Link>
           <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#0B1F3A' }}>

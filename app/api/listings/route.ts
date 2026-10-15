@@ -1,4 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
+import { trackSearch } from '@/lib/tracking'
+import { rentalTerms } from '@/lib/rentalTerms'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/middleware/requireAuth'
 import { getUserPlan, countCountedListings } from '@/lib/plans'
@@ -75,6 +77,11 @@ export async function GET(req: NextRequest) {
       prisma.listing.count({ where }),
     ])
 
+    // Barometre de la demande : une recherche = premiere page avec au moins un critere
+    if (page === 1 && (city || listingType || duration || fuelType || words.length > 0)) {
+      await trackSearch({ city, listingType, rentDuration: duration, fuelType, query: words.join(' ') || null, resultsCount: total })
+    }
+
     return NextResponse.json({
       listings,
       total,
@@ -136,6 +143,7 @@ export const POST = requireAuth(async (req: NextRequest, user) => {
         rentDuration: rentDuration || null,
         description,
         locationCity,
+        ...(listingType === 'rent' && rentalTerms(body)),
         status: 'pending',
         // La duree de publication demarre a la validation par l'admin
         expiresAt: null,

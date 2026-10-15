@@ -29,6 +29,7 @@ export default function NewListingPage() {
     listingType: 'sale', price: '', rentDuration: 'month',
     description: '', locationCity: '',
     loaAcompte: '', loaDuree: '', loaAssurance: 'non', loaAssistant: 'non', loaVehiculeRelais: 'non',
+    rentDeposit: '', rentKm: '', rentInsurance: '', rentMinWeeks: '', rentRequirements: '', availableFrom: '',
   })
 
   useEffect(() => {
@@ -60,7 +61,18 @@ export default function NewListingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ ...form, description: finalDescription }),
+        body: JSON.stringify({
+          ...form,
+          description: finalDescription,
+          ...(form.listingType === 'rent' && !isLOA && {
+            depositAmount: form.rentDeposit,
+            includedKmPerWeek: form.rentKm,
+            insuranceIncluded: form.rentInsurance === '' ? undefined : form.rentInsurance === 'oui',
+            minRentalWeeks: form.rentMinWeeks,
+            driverRequirements: form.rentRequirements,
+            availableFrom: form.availableFrom,
+          }),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -79,31 +91,31 @@ export default function NewListingPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0A0F' }}>
-        <div className="text-gray-500">Verification...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F3F1EA' }}>
+        <div className="text-[#6B7789]">Verification...</div>
       </div>
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
-  const inputStyle = { backgroundColor: '#111118', borderColor: '#1A1A2E' }
-  const labelClass = "block text-sm font-medium text-gray-400 mb-1"
+  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-[#0B1F3A] text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#D9D5C9' }
+  const labelClass = "block text-sm font-medium text-[#33465F] mb-1"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/annonces" className="text-sm text-gray-500 hover:text-white transition-colors">← Retour</Link>
-        <h1 className="text-2xl font-bold text-white mt-3">Publier une annonce</h1>
-        <p className="text-gray-500 text-sm mt-1">Votre annonce sera visible apres validation par notre equipe</p>
+        <Link href="/annonces" className="text-sm text-[#6B7789] hover:underline transition-colors">← Retour</Link>
+        <h1 className="text-2xl font-bold text-[#0B1F3A] mt-3">Publier une annonce</h1>
+        <p className="text-[#6B7789] text-sm mt-1">Votre annonce sera visible apres validation par notre equipe</p>
       </div>
 
       <div className="flex gap-2 mb-8">
         {[1, 2, 3, 4].map(s => (
           <div key={s} className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#0B1F3A' : '#111118', color: step >= s ? 'white' : '#666', border: step >= s ? 'none' : '1px solid #1A1A2E' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#0B1F3A' : '#FFFFFF', color: step >= s ? 'white' : '#6B7789', border: step >= s ? 'none' : '1px solid #D9D5C9' }}>
               {s}
             </div>
-            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#0B1F3A' : '#1A1A2E') : 'transparent' }} />
+            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#0B1F3A' : '#D9D5C9') : 'transparent' }} />
           </div>
         ))}
       </div>
@@ -111,8 +123,8 @@ export default function NewListingPage() {
       {error && <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
 
       {step === 1 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Informations véhicule</h2>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+          <h2 className="font-bold text-[#0B1F3A]">Informations véhicule</h2>
 
           <div>
             <label className={labelClass}>Titre <span className="text-red-500">*</span></label>
@@ -145,7 +157,7 @@ export default function NewListingPage() {
             <div>
               <label className={labelClass}>Places <span className="text-red-500">*</span></label>
               <select value={form.seats} onChange={e => update('seats', e.target.value)} className={inputClass} style={inputStyle}>
-                {[2,4,5,6,7,8,9].map(n => <option key={n} value={n} style={{ backgroundColor: '#111118' }}>{n}</option>)}
+                {[2,4,5,6,7,8,9].map(n => <option key={n} value={n} style={{ backgroundColor: '#FFFFFF' }}>{n}</option>)}
               </select>
             </div>
           </div>
@@ -154,17 +166,17 @@ export default function NewListingPage() {
             <div>
               <label className={labelClass}>Énergie <span className="text-red-500">*</span></label>
               <select value={form.fuelType} onChange={e => update('fuelType', e.target.value)} className={inputClass} style={inputStyle}>
-                <option value="electric" style={{ backgroundColor: '#111118' }}>Électrique</option>
-                <option value="hybrid" style={{ backgroundColor: '#111118' }}>Hybride</option>
-                <option value="diesel" style={{ backgroundColor: '#111118' }}>Diesel</option>
-                <option value="gasoline" style={{ backgroundColor: '#111118' }}>Essence</option>
+                <option value="electric" style={{ backgroundColor: '#FFFFFF' }}>Électrique</option>
+                <option value="hybrid" style={{ backgroundColor: '#FFFFFF' }}>Hybride</option>
+                <option value="diesel" style={{ backgroundColor: '#FFFFFF' }}>Diesel</option>
+                <option value="gasoline" style={{ backgroundColor: '#FFFFFF' }}>Essence</option>
               </select>
             </div>
             <div>
               <label className={labelClass}>Transmission <span className="text-red-500">*</span></label>
               <select value={form.transmission} onChange={e => update('transmission', e.target.value)} className={inputClass} style={inputStyle}>
-                <option value="automatic" style={{ backgroundColor: '#111118' }}>Automatique</option>
-                <option value="manual" style={{ backgroundColor: '#111118' }}>Manuelle</option>
+                <option value="automatic" style={{ backgroundColor: '#FFFFFF' }}>Automatique</option>
+                <option value="manual" style={{ backgroundColor: '#FFFFFF' }}>Manuelle</option>
               </select>
             </div>
           </div>
@@ -197,20 +209,20 @@ export default function NewListingPage() {
       )}
 
       {step === 2 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Offre commerciale</h2>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+          <h2 className="font-bold text-[#0B1F3A]">Offre commerciale</h2>
 
           <div>
             <label className={labelClass}>Type d'offre <span className="text-red-500">*</span></label>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { type: 'sale', dur: 'month', label: 'Vente', active: form.listingType === 'sale' },
-                { type: 'rent', dur: 'month', label: 'Location', active: form.listingType === 'rent' && !isLOA },
+                { type: 'rent', dur: 'week', label: 'Location', active: form.listingType === 'rent' && !isLOA },
                 { type: 'rent', dur: 'loa', label: 'LOA', active: isLOA },
               ].map(btn => (
                 <button key={btn.label} type="button" onClick={() => { update('listingType', btn.type); update('rentDuration', btn.dur) }}
                   className="p-3 rounded-[3px] border-2 text-sm font-medium transition-all"
-                  style={{ borderColor: btn.active ? '#0B1F3A' : '#1A1A2E', backgroundColor: btn.active ? '#1A0800' : '#0A0A0F', color: btn.active ? '#0B1F3A' : '#666' }}>
+                  style={{ borderColor: btn.active ? '#0B1F3A' : '#D9D5C9', backgroundColor: btn.active ? '#FFF3CC' : '#F3F1EA', color: btn.active ? '#0B1F3A' : '#6B7789' }}>
                   {btn.label}
                 </button>
               ))}
@@ -226,16 +238,56 @@ export default function NewListingPage() {
               <div>
                 <label className={labelClass}>Duree location</label>
                 <select value={form.rentDuration} onChange={e => update('rentDuration', e.target.value)} className={inputClass} style={inputStyle}>
-                  <option value="week" style={{ backgroundColor: '#111118' }}>Par semaine</option>
-                  <option value="month" style={{ backgroundColor: '#111118' }}>Par mois</option>
-                  <option value="year" style={{ backgroundColor: '#111118' }}>Par an</option>
+                  <option value="week" style={{ backgroundColor: '#FFFFFF' }}>Par semaine</option>
+                  <option value="month" style={{ backgroundColor: '#FFFFFF' }}>Par mois</option>
+                  <option value="year" style={{ backgroundColor: '#FFFFFF' }}>Par an</option>
                 </select>
               </div>
             )}
           </div>
 
+          {form.listingType === 'rent' && !isLOA && (
+            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
+              <p className="text-sm font-bold" style={{ color: '#0B1F3A' }}>Conditions de location</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Caution (EUR)</label>
+                  <input type="number" min="0" value={form.rentDeposit} onChange={e => update('rentDeposit', e.target.value)} placeholder="1000" className={inputClass} style={inputStyle} />
+                </div>
+                <div>
+                  <label className={labelClass}>Kilomètres inclus par semaine</label>
+                  <input type="number" min="0" value={form.rentKm} onChange={e => update('rentKm', e.target.value)} placeholder="1500" className={inputClass} style={inputStyle} />
+                </div>
+                <div>
+                  <label className={labelClass}>Durée minimale (semaines)</label>
+                  <input type="number" min="1" value={form.rentMinWeeks} onChange={e => update('rentMinWeeks', e.target.value)} placeholder="4" className={inputClass} style={inputStyle} />
+                </div>
+                <div>
+                  <label className={labelClass}>Disponible à partir du</label>
+                  <input type="date" value={form.availableFrom} onChange={e => update('availableFrom', e.target.value)} className={inputClass} style={inputStyle} />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Assurance incluse</label>
+                <div className="flex gap-2 mt-1">
+                  {['oui', 'non'].map(v => (
+                    <button key={v} type="button" onClick={() => update('rentInsurance', form.rentInsurance === v ? '' : v)}
+                      className="flex-1 py-2 rounded-[3px] text-sm font-medium border"
+                      style={{ backgroundColor: form.rentInsurance === v ? '#0B1F3A' : '#FFFFFF', borderColor: form.rentInsurance === v ? '#0B1F3A' : '#D9D5C9', color: form.rentInsurance === v ? 'white' : '#6B7789' }}>
+                      {v === 'oui' ? 'Oui' : 'Non'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Conditions demandées au chauffeur</label>
+                <input value={form.rentRequirements} onChange={e => update('rentRequirements', e.target.value)} maxLength={500} placeholder="Carte VTC, permis depuis 3 ans, 25 ans minimum…" className={inputClass} style={inputStyle} />
+              </div>
+            </div>
+          )}
+
           {isLOA && (
-            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
+            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
               <p className="text-sm font-bold" style={{ color: '#0B1F3A' }}>Conditions LOA</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -259,7 +311,7 @@ export default function NewListingPage() {
                       {['oui', 'non'].map(v => (
                         <button key={v} type="button" onClick={() => update(item.field, v)}
                           className="flex-1 py-2 rounded-lg text-sm font-medium border transition-all capitalize"
-                          style={{ backgroundColor: item.val === v ? '#0B1F3A' : '#111118', borderColor: item.val === v ? '#0B1F3A' : '#1A1A2E', color: item.val === v ? 'white' : '#666' }}>
+                          style={{ backgroundColor: item.val === v ? '#0B1F3A' : '#FFFFFF', borderColor: item.val === v ? '#0B1F3A' : '#D9D5C9', color: item.val === v ? 'white' : '#6B7789' }}>
                           {v.charAt(0).toUpperCase() + v.slice(1)}
                         </button>
                       ))}
@@ -277,17 +329,17 @@ export default function NewListingPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
+            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>← Retour</button>
             <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>Suivant →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Verification et publication</h2>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+          <h2 className="font-bold text-[#0B1F3A]">Verification et publication</h2>
 
-          <div className="p-4 rounded-[3px] space-y-2 text-sm" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
+          <div className="p-4 rounded-[3px] space-y-2 text-sm" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
             {[
               ['Titre', form.title],
               ['Véhicule', `${form.brand} ${form.model} ${form.year}`],
@@ -299,8 +351,8 @@ export default function NewListingPage() {
               ['Ville', form.locationCity],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between">
-                <span className="text-gray-400">{label}</span>
-                <span className="font-medium text-white">{value}</span>
+                <span className="text-[#33465F]">{label}</span>
+                <span className="font-medium text-[#0B1F3A]">{value}</span>
               </div>
             ))}
           </div>
@@ -311,7 +363,7 @@ export default function NewListingPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
+            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>← Retour</button>
             <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>
               {loading ? 'Creation...' : 'Continuer →'}
             </button>
@@ -320,11 +372,11 @@ export default function NewListingPage() {
       )}
 
       {step === 4 && listingId && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Photos du véhicule</h2>
-          <p className="text-sm text-gray-500">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+          <h2 className="font-bold text-[#0B1F3A]">Photos du véhicule</h2>
+          <p className="text-sm text-[#6B7789]">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
           <PhotoUploader listingId={listingId} onComplete={() => router.push(`/annonces/${listingId}`)} />
-          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-[3px] text-sm text-gray-500 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
+          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-[3px] text-sm text-[#6B7789] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>
             Passer cette etape (photos plus tard)
           </button>
         </div>

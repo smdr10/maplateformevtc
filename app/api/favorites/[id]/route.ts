@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackListing } from '@/lib/tracking'
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/middleware/requireAuth'
 import { sendNewFavoriteEmail } from '@/lib/email'
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await prisma.favorite.create({
         data: { userId: user.sub, listingId },
       })
+      await trackListing(listingId, 'favorites')
       const listing = await prisma.listing.findFirst({
         where: { id: listingId },
         select: { userId: true, title: true },

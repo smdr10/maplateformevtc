@@ -22,6 +22,12 @@ interface Listing {
   description: string
   seats: number
   color: string | null
+  depositAmount: string | number | null
+  includedKmPerWeek: number | null
+  insuranceIncluded: boolean | null
+  minRentalWeeks: number | null
+  driverRequirements: string | null
+  availableFrom: string | null
   status: string
   createdAt: string
   images: { id: string; imageUrl: string; position: number }[]
@@ -277,6 +283,35 @@ export default function AnnonceDetailPage() {
               ))}
             </dl>
           </div>
+
+          {/* CONDITIONS DE LOCATION */}
+          {listing.listingType === 'rent' && listing.rentDuration !== 'loa' && (
+            <div className="panel overflow-hidden">
+              <h2 className="display border-b-[1.5px] border-ink bg-signal px-6 py-3 text-xl">Conditions de location</h2>
+              <dl className="grid grid-cols-2 sm:grid-cols-4">
+                {[
+                  ['Caution', listing.depositAmount != null ? `${Number(listing.depositAmount).toLocaleString('fr-FR')} €` : 'À demander'],
+                  ['Km inclus / sem.', listing.includedKmPerWeek != null ? `${listing.includedKmPerWeek.toLocaleString('fr-FR')} km` : 'À demander'],
+                  ['Assurance', listing.insuranceIncluded == null ? 'À demander' : listing.insuranceIncluded ? 'Incluse' : 'Non incluse'],
+                  ['Durée minimale', listing.minRentalWeeks ? `${listing.minRentalWeeks} sem.` : 'Sans minimum'],
+                ].map(([label, value]) => (
+                  <div key={label} className="border-b border-r border-rule px-5 py-4">
+                    <dt className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-ink-mute">{label}</dt>
+                    <dd className="mt-1 font-display text-xl font-semibold">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="space-y-1 px-6 py-4 text-sm">
+                <p>
+                  <span className="font-semibold">Disponibilité : </span>
+                  {listing.availableFrom && new Date(listing.availableFrom) > new Date()
+                    ? `à partir du ${new Date(listing.availableFrom).toLocaleDateString('fr-FR')}`
+                    : 'disponible maintenant'}
+                </p>
+                {listing.driverRequirements && <p><span className="font-semibold">Conditions : </span>{listing.driverRequirements}</p>}
+              </div>
+            </div>
+          )}
 
           {/* DESCRIPTION */}
           <div className="panel-soft p-6">

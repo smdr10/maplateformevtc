@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { prisma } from './prisma'
-import { PRO_PRICING } from './plans'
+import { PAID_PRICING, PaidTier } from './plans'
 
 // Client cree a la demande : le build ne doit pas exiger STRIPE_SECRET_KEY
 let stripeClient: Stripe | null = null
@@ -10,20 +10,31 @@ export function getStripe(): Stripe {
   return stripeClient
 }
 
-export function isBillingConfigured(): boolean {
-  return !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_PRO_MONTH && process.env.STRIPE_PRICE_PRO_YEAR)
+const PRICE_ENV: Record<PaidTier, Record<'month' | 'year', string>> = {
+  pro: { month: 'STRIPE_PRICE_PRO_MONTH', year: 'STRIPE_PRICE_PRO_YEAR' },
+  flotte: { month: 'STRIPE_PRICE_FLOTTE_MONTH', year: 'STRIPE_PRICE_FLOTTE_YEAR' },
+}
+
+export function isBillingConfigured(tier: PaidTier = 'pro'): boolean {
+  return !!(process.env.STRIPE_SECRET_KEY && process.env[PRICE_ENV[tier].month] && process.env[PRICE_ENV[tier].year])
 }
 
 export type Interval = 'month' | 'year'
 
-export function priceIdFor(interval: Interval): string {
-  const id = interval === 'month' ? process.env.STRIPE_PRICE_PRO_MONTH : process.env.STRIPE_PRICE_PRO_YEAR
-  if (!id) throw new Error(`Prix Stripe manquant pour ${interval}`)
+export function priceIdFor(tier: PaidTier, interval: Interval): string {
+  const id = process.env[PRICE_ENV[tier][interval]]
+  if (!id) throw new Error(`Prix Stripe manquant pour ${tier}/${interval}`)
   return id
 }
 
-function intervalForPrice(priceId: string | undefined): Interval {
-  return priceId === process.env.STRIPE_PRICE_PRO_YEAR ? 'year' : 'month'
+// Retrouve le pack et la periodicite a partir d'un identifiant de prix Stripe
+function planForPrice(priceId: string | undefined): { tier: PaidTier; interval: Interval } {
+  for (const tier of Object.keys(PRICE_ENV) as PaidTier[]) {
+    for (const interval of ['month', 'year'] as Interval[]) {
+      if (priceId && process.env[PRICE_ENV[tier][interval]] === priceId) return { tier, interval }
+    }
+  }
+  return { tier: 'pro', interval: 'month' }
 }
 
 export function appUrl(path = ''): string {
@@ -31,8 +42,8 @@ export function appUrl(path = ''): string {
 }
 
 // Le mois offert n'est accorde qu'au premier abonnement mensuel
-export function trialDaysFor(interval: Interval, hadSubscriptionBefore: boolean): number | undefined {
-  const days = PRO_PRICING[interval].trialDays
+export function trialDaysFor(tier: PaidTier, interval: Interval, hadSubscriptionBefore: boolean): number | undefined {
+  const days = PAID_PRICING[tier][interval].trialDays
   return days > 0 && !hadSubscriptionBefore ? days : undefined
 }
 
@@ -60,9 +71,10 @@ export async function syncSubscription(sub: Stripe.Subscription): Promise<void> 
   const item = sub.items.data[0]
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
   const status = mapStatus(sub)
+  const plan = planForPrice(item?.price.id)
   const data = {
-    tier: 'pro' as const,
-    interval: intervalForPrice(item?.price.id),
+    tier: plan.tier,
+    interval: plan.interval,
     status,
     trialEndsAt: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
     currentPeriodEnd: item?.current_period_end ? new Date(item.current_period_end * 1000) : null,

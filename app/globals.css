@@ -1,25 +1,39 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Identite "Signaletique" : bleu nuit, jaune marquage, papier
+   Identite MaPlateformeVTC : orange, moderne, pensee "app mobile"
    ============================================================ */
-@theme {
-  --color-ink: #0B1F3A;        /* bleu nuit : textes, boutons, traits */
-  --color-ink-soft: #33465F;   /* textes secondaires */
-  --color-ink-mute: #6B7789;   /* legendes */
-  --color-paper: #F3F1EA;      /* fond papier */
-  --color-card: #FFFFFF;
-  --color-rule: #D9D5C9;       /* filets */
-  --color-signal: #FFC72C;     /* jaune marquage au sol */
-  --color-signal-soft: #FFF3CC;
-  --color-plate: #1D4ED8;      /* bande bleue de plaque */
-  --color-go: #15803D;         /* certifie, en ligne */
-  --color-go-soft: #E7F3EA;
-  --color-stop: #B42318;       /* erreurs, refus */
-  --color-stop-soft: #FBEAE8;
+@theme static {
+  --color-brand: #FF5500;
+  --color-brand-dark: #E04A00;
+  --color-brand-soft: #FFF1E8;
+  --color-brand-glow: #FFB089;
 
-  --font-sans: var(--font-barlow), system-ui, sans-serif;
-  --font-display: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  --color-ink: #16181D;        /* textes */
+  --color-ink-soft: #4B5160;   /* textes secondaires */
+  --color-ink-mute: #8A8F9A;   /* legendes */
+  --color-paper: #F7F7F8;      /* fond de page */
+  --color-card: #FFFFFF;
+  --color-rule: #ECECEF;       /* filets */
+  --color-night: #111216;      /* sections sombres */
+
+  /* Alias conserves pour les composants existants */
+  --color-signal: #FF5500;
+  --color-signal-soft: #FFF1E8;
+  --color-plate: #E04A00;
+
+  --color-go: #16A34A;
+  --color-go-soft: #E8F7EE;
+  --color-stop: #DC2626;
+  --color-stop-soft: #FDECEC;
+
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
+  --font-display: var(--font-jakarta), system-ui, sans-serif;
+
+  --radius-card: 20px;
+  --shadow-soft: 0 1px 2px rgb(22 24 29 / 0.04), 0 8px 24px rgb(22 24 29 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(22 24 29 / 0.05), 0 18px 40px rgb(22 24 29 / 0.12);
+  --shadow-brand: 0 10px 30px rgb(255 85 0 / 0.35);
 }
 
 html, body {
@@ -30,69 +44,79 @@ html, body {
 }
 
 @layer components {
-  /* Titres facon panneau */
   .display {
     font-family: var(--font-display);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
-    line-height: 0.95;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.04;
   }
   .eyebrow {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 0.14em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--color-plate);
+    color: var(--color-brand);
   }
 
-  /* Boutons */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.7rem 1.1rem;
-    border-radius: 3px;
-    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 700;
     font-size: 0.95rem;
-    transition: background-color 120ms, color 120ms, transform 80ms;
-    border: 1.5px solid var(--color-ink);
+    transition: background-color 150ms, color 150ms, box-shadow 150ms, transform 120ms;
+    border: 1px solid transparent;
   }
-  .btn:active { transform: translateY(1px); }
-  .btn-ink { background: var(--color-ink); color: var(--color-paper); }
-  .btn-ink:hover { background: #142D52; }
-  .btn-line { background: transparent; color: var(--color-ink); }
-  .btn-line:hover { background: var(--color-card); }
-  .btn-signal { background: var(--color-signal); color: var(--color-ink); border-color: var(--color-ink); }
-  .btn-signal:hover { background: #FFD45C; }
+  .btn:active { transform: scale(0.97); }
+  .btn-brand, .btn-signal { background: var(--color-brand); color: #fff; box-shadow: var(--shadow-brand); }
+  .btn-brand:hover, .btn-signal:hover { background: var(--color-brand-dark); }
+  .btn-ink { background: var(--color-ink); color: #fff; }
+  .btn-ink:hover { background: #2A2D35; }
+  .btn-line { background: var(--color-card); color: var(--color-ink); border-color: var(--color-rule); }
+  .btn-line:hover { border-color: var(--color-ink-mute); }
 
-  /* Cartes et champs */
-  .panel {
-    background: var(--color-card);
-    border: 1.5px solid var(--color-ink);
-    border-radius: 4px;
-  }
-  .panel-soft {
+  .panel, .panel-soft {
     background: var(--color-card);
     border: 1px solid var(--color-rule);
-    border-radius: 4px;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
   }
+  .panel-soft { box-shadow: none; }
+
   .field {
     width: 100%;
     background: var(--color-card);
-    border: 1.5px solid var(--color-rule);
-    border-radius: 3px;
-    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 14px;
+    padding: 0.7rem 0.95rem;
     font-size: 0.95rem;
     color: var(--color-ink);
+    transition: border-color 150ms, box-shadow 150ms;
   }
-  .field:focus { outline: none; border-color: var(--color-ink); }
+  .field:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 4px rgb(255 85 0 / 0.12); }
 
-  /* Bande jaune/noire de chantier, utilisee comme separateur */
-  .hazard {
-    height: 8px;
-    background: repeating-linear-gradient(-45deg, var(--color-signal) 0 14px, var(--color-ink) 14px 28px);
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
   }
+}
+
+/* Barre d'onglets mobile : laisse la place en bas de page */
+@media (max-width: 767px) {
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

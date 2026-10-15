@@ -91,40 +91,40 @@ export default function NewListingPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F3F1EA' }}>
-        <div className="text-[#6B7789]">Verification...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F7F8' }}>
+        <div className="text-[#8A8F9A]">Verification...</div>
       </div>
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-[#0B1F3A] text-sm placeholder-gray-500 focus:outline-none transition-all"
-  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#D9D5C9' }
-  const labelClass = "block text-sm font-medium text-[#33465F] mb-1"
+  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-[#FF5500] text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#ECECEF' }
+  const labelClass = "block text-sm font-medium text-[#4B5160] mb-1"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/annonces" className="text-sm text-[#6B7789] hover:underline transition-colors">← Retour</Link>
-        <h1 className="text-2xl font-bold text-[#0B1F3A] mt-3">Publier une annonce</h1>
-        <p className="text-[#6B7789] text-sm mt-1">Votre annonce sera visible apres validation par notre equipe</p>
+        <Link href="/annonces" className="text-sm text-[#8A8F9A] hover:underline transition-colors">← Retour</Link>
+        <h1 className="text-2xl font-bold text-[#FF5500] mt-3">Publier une annonce</h1>
+        <p className="text-[#8A8F9A] text-sm mt-1">Votre annonce sera visible apres validation par notre equipe</p>
       </div>
 
       <div className="flex gap-2 mb-8">
         {[1, 2, 3, 4].map(s => (
           <div key={s} className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#0B1F3A' : '#FFFFFF', color: step >= s ? 'white' : '#6B7789', border: step >= s ? 'none' : '1px solid #D9D5C9' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#FF5500' : '#FFFFFF', color: step >= s ? 'white' : '#8A8F9A', border: step >= s ? 'none' : '1px solid #ECECEF' }}>
               {s}
             </div>
-            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#0B1F3A' : '#D9D5C9') : 'transparent' }} />
+            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#FF5500' : '#ECECEF') : 'transparent' }} />
           </div>
         ))}
       </div>
 
-      {error && <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
+      {error && <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
 
       {step === 1 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold text-[#0B1F3A]">Informations véhicule</h2>
+        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold text-[#FF5500]">Informations véhicule</h2>
 
           <div>
             <label className={labelClass}>Titre <span className="text-red-500">*</span></label>
@@ -192,7 +192,7 @@ export default function NewListingPage() {
             </div>
           </div>
 
-          <div className="p-4 rounded-[3px]" style={{ backgroundColor: '#001A0A', border: '1px solid #003A15' }}>
+          <div className="p-4 rounded-xl" style={{ backgroundColor: '#001A0A', border: '1px solid #003A15' }}>
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={form.vtcCompliant} onChange={e => update('vtcCompliant', e.target.checked)} className="w-4 h-4 rounded" />
               <div>
@@ -202,15 +202,15 @@ export default function NewListingPage() {
             </label>
           </div>
 
-          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="w-full text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#0B1F3A' }}>
+          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="w-full text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
             Suivant →
           </button>
         </div>
       )}
 
       {step === 2 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold text-[#0B1F3A]">Offre commerciale</h2>
+        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold text-[#FF5500]">Offre commerciale</h2>
 
           <div>
             <label className={labelClass}>Type d'offre <span className="text-red-500">*</span></label>
@@ -221,8 +221,8 @@ export default function NewListingPage() {
                 { type: 'rent', dur: 'loa', label: 'LOA', active: isLOA },
               ].map(btn => (
                 <button key={btn.label} type="button" onClick={() => { update('listingType', btn.type); update('rentDuration', btn.dur) }}
-                  className="p-3 rounded-[3px] border-2 text-sm font-medium transition-all"
-                  style={{ borderColor: btn.active ? '#0B1F3A' : '#D9D5C9', backgroundColor: btn.active ? '#FFF3CC' : '#F3F1EA', color: btn.active ? '#0B1F3A' : '#6B7789' }}>
+                  className="p-3 rounded-xl border-2 text-sm font-medium transition-all"
+                  style={{ borderColor: btn.active ? '#FF5500' : '#ECECEF', backgroundColor: btn.active ? '#FFF1E8' : '#F7F7F8', color: btn.active ? '#16181D' : '#8A8F9A' }}>
                   {btn.label}
                 </button>
               ))}
@@ -247,8 +247,8 @@ export default function NewListingPage() {
           </div>
 
           {form.listingType === 'rent' && !isLOA && (
-            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
-              <p className="text-sm font-bold" style={{ color: '#0B1F3A' }}>Conditions de location</p>
+            <div className="space-y-4 p-4 rounded-xl" style={{ backgroundColor: '#FFF1E8', border: '1px solid #FFD0B0' }}>
+              <p className="text-sm font-bold" style={{ color: '#16181D' }}>Conditions de location</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Caution (EUR)</label>
@@ -272,8 +272,8 @@ export default function NewListingPage() {
                 <div className="flex gap-2 mt-1">
                   {['oui', 'non'].map(v => (
                     <button key={v} type="button" onClick={() => update('rentInsurance', form.rentInsurance === v ? '' : v)}
-                      className="flex-1 py-2 rounded-[3px] text-sm font-medium border"
-                      style={{ backgroundColor: form.rentInsurance === v ? '#0B1F3A' : '#FFFFFF', borderColor: form.rentInsurance === v ? '#0B1F3A' : '#D9D5C9', color: form.rentInsurance === v ? 'white' : '#6B7789' }}>
+                      className="flex-1 py-2 rounded-xl text-sm font-medium border"
+                      style={{ backgroundColor: form.rentInsurance === v ? '#FF5500' : '#FFFFFF', borderColor: form.rentInsurance === v ? '#FF5500' : '#ECECEF', color: form.rentInsurance === v ? 'white' : '#8A8F9A' }}>
                       {v === 'oui' ? 'Oui' : 'Non'}
                     </button>
                   ))}
@@ -287,8 +287,8 @@ export default function NewListingPage() {
           )}
 
           {isLOA && (
-            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
-              <p className="text-sm font-bold" style={{ color: '#0B1F3A' }}>Conditions LOA</p>
+            <div className="space-y-4 p-4 rounded-xl" style={{ backgroundColor: '#FFF1E8', border: '1px solid #FFD0B0' }}>
+              <p className="text-sm font-bold" style={{ color: '#16181D' }}>Conditions LOA</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Acompte (EUR) <span className="text-red-500">*</span></label>
@@ -311,7 +311,7 @@ export default function NewListingPage() {
                       {['oui', 'non'].map(v => (
                         <button key={v} type="button" onClick={() => update(item.field, v)}
                           className="flex-1 py-2 rounded-lg text-sm font-medium border transition-all capitalize"
-                          style={{ backgroundColor: item.val === v ? '#0B1F3A' : '#FFFFFF', borderColor: item.val === v ? '#0B1F3A' : '#D9D5C9', color: item.val === v ? 'white' : '#6B7789' }}>
+                          style={{ backgroundColor: item.val === v ? '#FF5500' : '#FFFFFF', borderColor: item.val === v ? '#FF5500' : '#ECECEF', color: item.val === v ? 'white' : '#8A8F9A' }}>
                           {v.charAt(0).toUpperCase() + v.slice(1)}
                         </button>
                       ))}
@@ -329,17 +329,17 @@ export default function NewListingPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>← Retour</button>
-            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>Suivant →</button>
+            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[#4B5160] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>← Retour</button>
+            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>Suivant →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold text-[#0B1F3A]">Verification et publication</h2>
+        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold text-[#FF5500]">Verification et publication</h2>
 
-          <div className="p-4 rounded-[3px] space-y-2 text-sm" style={{ backgroundColor: '#FFF3CC', border: '1px solid #FFC72C' }}>
+          <div className="p-4 rounded-xl space-y-2 text-sm" style={{ backgroundColor: '#FFF1E8', border: '1px solid #FFD0B0' }}>
             {[
               ['Titre', form.title],
               ['Véhicule', `${form.brand} ${form.model} ${form.year}`],
@@ -351,20 +351,20 @@ export default function NewListingPage() {
               ['Ville', form.locationCity],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between">
-                <span className="text-[#33465F]">{label}</span>
-                <span className="font-medium text-[#0B1F3A]">{value}</span>
+                <span className="text-[#4B5160]">{label}</span>
+                <span className="font-medium text-[#FF5500]">{value}</span>
               </div>
             ))}
           </div>
 
-          <div className="p-4 rounded-[3px]" style={{ backgroundColor: '#001020', border: '1px solid #002040' }}>
+          <div className="p-4 rounded-xl" style={{ backgroundColor: '#001020', border: '1px solid #002040' }}>
             <p className="text-sm font-medium text-blue-400">Information importante</p>
             <p className="text-xs mt-1" style={{ color: '#1A4A7A' }}>Votre annonce sera verifiee par notre equipe avant d'etre publiee. Vous serez notifie sous 24h.</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>← Retour</button>
-            <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>
+            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[#4B5160] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>← Retour</button>
+            <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
               {loading ? 'Creation...' : 'Continuer →'}
             </button>
           </div>
@@ -372,11 +372,11 @@ export default function NewListingPage() {
       )}
 
       {step === 4 && listingId && (
-        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold text-[#0B1F3A]">Photos du véhicule</h2>
-          <p className="text-sm text-[#6B7789]">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
+        <div className="rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold text-[#FF5500]">Photos du véhicule</h2>
+          <p className="text-sm text-[#8A8F9A]">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
           <PhotoUploader listingId={listingId} onComplete={() => router.push(`/annonces/${listingId}`)} />
-          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-[3px] text-sm text-[#6B7789] transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>
+          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-xl text-sm text-[#8A8F9A] transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>
             Passer cette etape (photos plus tard)
           </button>
         </div>

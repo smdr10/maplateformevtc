@@ -76,7 +76,7 @@ export default function BienvenuePage() {
 
       {me.accountType === 'professional' && (
         <div className="panel-soft mt-8 flex gap-3 p-5">
-          <span aria-hidden="true" className="font-display text-2xl text-go">✓</span>
+          <span aria-hidden="true" className="text-2xl text-go">✓</span>
           <p className="text-sm text-ink-soft">
             <strong className="text-ink">Badge « Pro certifié » gratuit, quel que soit votre pack.</strong>{' '}
             Après ce choix, envoyez vos justificatifs (Kbis ou avis SIRENE, carte VTC…) pour faire certifier votre société.
@@ -91,7 +91,7 @@ export default function BienvenuePage() {
             Le paiement en ligne de ce pack ouvre très bientôt : nous vous préviendrons dès qu&apos;il est disponible.
             En attendant, vous profitez du pack Standard.
           </p>
-          <Link href={nextPage} className="mt-3 inline-block font-display text-sm font-semibold uppercase tracking-wider underline underline-offset-4">Continuer →</Link>
+          <Link href={nextPage} className="mt-3 inline-block text-sm font-bold underline underline-offset-4">Continuer →</Link>
         </div>
       )}
 

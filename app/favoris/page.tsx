@@ -40,43 +40,43 @@ export default function FavorisPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F3F1EA' }}>
-      <div style={{ color: '#6B7789' }}>Chargement...</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F7F8' }}>
+      <div style={{ color: '#8A8F9A' }}>Chargement...</div>
     </div>
   )
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F3F1EA' }}>
-      <h1 className="text-xl font-bold mb-5" style={{ color: '#0B1F3A' }}>Mes favoris</h1>
+    <div className="max-w-5xl mx-auto px-4 py-8 min-h-screen" style={{ backgroundColor: '#F7F7F8' }}>
+      <h1 className="text-xl font-bold mb-5" style={{ color: '#16181D' }}>Mes favoris</h1>
 
       {favorites.length === 0 ? (
-        <div className="text-center py-16 rounded-[4px]" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+        <div className="text-center py-16 rounded-[20px]" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
           <p className="text-gray-400 mb-2">Aucun favori pour le moment</p>
-          <Link href="/annonces" className="text-sm font-medium" style={{ color: '#0B1F3A' }}>Parcourir les annonces</Link>
+          <Link href="/annonces" className="text-sm font-medium" style={{ color: '#16181D' }}>Parcourir les annonces</Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {favorites.map(listing => (
-            <div key={listing.id} className="rounded-[3px] overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+            <div key={listing.id} className="rounded-xl overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
               <Link href={`/annonces/${listing.id}`}>
-                <div className="h-36 relative overflow-hidden" style={{ backgroundColor: '#E6E2D6' }}>
+                <div className="h-36 relative overflow-hidden" style={{ backgroundColor: '#F1F1F3' }}>
                   {listing.images?.[0] ? (
                     <img src={listing.images?.[0].imageUrl} alt={listing.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ color: '#B8B2A3' }}>
+                    <div className="w-full h-full flex items-center justify-center" style={{ color: '#C4C7CE' }}>
                       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                   )}
-                  <span className="absolute top-2 left-2 text-xs px-1.5 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: listing.listingType === 'sale' ? '#1D4ED8' : listing.rentDuration === 'loa' ? '#8B5CF6' : '#0B1F3A' }}>
+                  <span className="absolute top-2 left-2 text-xs px-1.5 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: listing.listingType === 'sale' ? '#1D4ED8' : listing.rentDuration === 'loa' ? '#8B5CF6' : '#FF5500' }}>
                     {listing.listingType === 'sale' ? 'Vente' : listing.rentDuration === 'loa' ? 'LOA' : 'Location'}
                   </span>
                 </div>
               </Link>
               <div className="p-3">
-                <p className="font-semibold text-sm truncate" style={{ color: '#0B1F3A' }}>{listing.title}</p>
-                <p className="text-xs mt-0.5" style={{ color: '#6B7789' }}>{listing.year} · {listing.locationCity}</p>
+                <p className="font-semibold text-sm truncate" style={{ color: '#16181D' }}>{listing.title}</p>
+                <p className="text-xs mt-0.5" style={{ color: '#8A8F9A' }}>{listing.year} · {listing.locationCity}</p>
                 <div className="flex items-center justify-between mt-2">
-                 <p className="font-bold text-sm" style={{ color: '#0B1F3A' }}>{listing.price ? parseFloat(listing.price.toString()).toLocaleString() : 0} EUR</p>
+                 <p className="font-bold text-sm" style={{ color: '#16181D' }}>{listing.price ? parseFloat(listing.price.toString()).toLocaleString() : 0} EUR</p>
                   <button onClick={() => removeFavorite(listing.id)} className="text-xs px-2 py-1 rounded-lg transition-all" style={{ backgroundColor: '#FFF0F0', color: '#B42318' }}>
                     Retirer
                   </button>

@@ -126,8 +126,8 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); uploadFiles(e.dataTransfer.files) }}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-[4px] p-8 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-[#0B1F3A] hover:bg-[#FFF3CC]'
+        className={`border-2 border-dashed rounded-[20px] p-8 text-center cursor-pointer transition-colors ${
+          dragOver ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-[#FF5500] hover:bg-[#FFF1E8]'
         }`}
       >
         <input
@@ -140,13 +140,13 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
         />
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 border-2 border-[#0B1F3A] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#FF5500] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-gray-500">Upload en cours...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-[#0B1F3A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-[#FF5500]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -157,7 +157,7 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-[3px] text-sm text-red-600">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
           {error}
         </div>
       )}
@@ -167,14 +167,14 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-gray-700">
               {images.length} photo(s)
-              {images.length < 3 && <span className="text-[#0B1F3A] ml-1">(minimum 3 requises)</span>}
+              {images.length < 3 && <span className="text-[#FF5500] ml-1">(minimum 3 requises)</span>}
             </p>
             <p className="text-xs text-gray-400">La 1ere photo est la photo principale</p>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {images.map((img, index) => (
-              <div key={img.publicId} className="relative group rounded-[3px] overflow-hidden border border-gray-200 aspect-video bg-gray-100">
+              <div key={img.publicId} className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-100">
                 <img
                   src={img.preview || img.url}
                   alt={`Photo ${index + 1}`}
@@ -182,7 +182,7 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
                 />
                 {index === 0 && (
                   <div className="absolute top-1.5 left-1.5">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#0B1F3A] text-white font-medium">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#FF5500] text-white font-medium">
                       Principale
                     </span>
                   </div>
@@ -218,7 +218,7 @@ export default function PhotoUploader({ listingId, onComplete }: PhotoUploaderPr
           <button
             onClick={saveImages}
             disabled={saving || images.length < 3}
-            className="w-full bg-[#0B1F3A] text-white py-2.5 rounded-[3px] text-sm font-medium hover:bg-[#142D52] disabled:opacity-50 transition-colors"
+            className="w-full bg-[#FF5500] text-white py-2.5 rounded-xl text-sm font-medium hover:bg-[#E04A00] disabled:opacity-50 transition-colors"
           >
             {saving ? 'Sauvegarde...' : `Sauvegarder ${images.length} photo(s)`}
           </button>

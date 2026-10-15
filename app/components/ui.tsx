@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { CarFront, Gauge, MapPin, Fuel, BadgeCheck } from 'lucide-react'
 
 // ============================================================
-// Briques visuelles partagees de l'identite "Signaletique"
+// Briques visuelles partagees (identite orange)
 // ============================================================
 
 export const FUEL_LABELS: Record<string, string> = {
@@ -12,7 +13,7 @@ export const FUEL_LABELS: Record<string, string> = {
 }
 
 const RENT_SUFFIX: Record<string, string> = {
-  week: '/ sem.',
+  week: '/ semaine',
   month: '/ mois',
   year: '/ an',
   loa: '/ mois',
@@ -22,35 +23,27 @@ export function formatPrice(price: number | string): string {
   return Number(price).toLocaleString('fr-FR', { maximumFractionDigits: 0 })
 }
 
-export function listingKind(listingType: string, rentDuration: string | null): { label: string; tone: 'ink' | 'plate' | 'signal' } {
-  if (listingType === 'sale') return { label: 'Vente', tone: 'ink' }
-  if (rentDuration === 'loa') return { label: 'LOA', tone: 'plate' }
-  return { label: rentDuration === 'week' ? 'Location semaine' : 'Location', tone: 'signal' }
+export function listingKind(listingType: string, rentDuration: string | null): { label: string; cls: string } {
+  if (listingType === 'sale') return { label: 'Vente', cls: 'bg-white/95 text-ink' }
+  if (rentDuration === 'loa') return { label: 'LOA', cls: 'bg-ink text-white' }
+  return { label: rentDuration === 'week' ? 'Location semaine' : 'Location', cls: 'bg-brand text-white' }
 }
 
-// Prix affiche comme une plaque d'immatriculation francaise
 export function PricePlate({
   price, listingType, rentDuration, size = 'md',
 }: { price: number | string; listingType: string; rentDuration: string | null; size?: 'md' | 'lg' }) {
   const suffix = listingType === 'rent' ? RENT_SUFFIX[rentDuration ?? 'month'] ?? '' : ''
-  const big = size === 'lg'
   return (
-    <span className={`inline-flex items-stretch overflow-hidden rounded-[3px] border-[1.5px] border-ink bg-card font-display font-semibold ${big ? 'text-3xl' : 'text-lg'}`}>
-      <span className={`flex flex-col items-center justify-center bg-plate text-white ${big ? 'px-2 text-xs' : 'px-1.5 text-[10px]'}`}>
-        <span aria-hidden="true">★</span>F
-      </span>
-      <span className={`flex items-baseline gap-1 ${big ? 'px-4 py-1' : 'px-2.5 py-0.5'}`}>
-        {formatPrice(price)}&nbsp;€
-        {suffix && <span className={`${big ? 'text-base' : 'text-xs'} font-medium text-ink-soft`}>{suffix}</span>}
-      </span>
+    <span className="inline-flex items-baseline gap-1">
+      <span className={`font-extrabold tracking-tight text-ink ${size === 'lg' ? 'text-4xl' : 'text-xl'}`}>{formatPrice(price)} €</span>
+      {suffix && <span className={`font-semibold text-ink-mute ${size === 'lg' ? 'text-base' : 'text-xs'}`}>{suffix}</span>}
     </span>
   )
 }
 
 export function KindTag({ listingType, rentDuration }: { listingType: string; rentDuration: string | null }) {
-  const { label, tone } = listingKind(listingType, rentDuration)
-  const cls = tone === 'ink' ? 'bg-ink text-paper' : tone === 'plate' ? 'bg-plate text-white' : 'bg-signal text-ink'
-  return <span className={`font-display text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[2px] ${cls}`}>{label}</span>
+  const { label, cls } = listingKind(listingType, rentDuration)
+  return <span className={`chip shadow-sm ${cls}`}>{label}</span>
 }
 
 export interface CardListing {
@@ -73,28 +66,34 @@ export interface CardListing {
 export function ListingCard({ listing }: { listing: CardListing }) {
   const image = listing.images[0]?.imageUrl
   return (
-    <Link href={`/annonces/${listing.id}`} className="group panel flex flex-col overflow-hidden transition-transform hover:-translate-y-0.5">
-      <div className="relative aspect-[4/3] overflow-hidden border-b-[1.5px] border-ink bg-rule">
+    <Link href={`/annonces/${listing.id}`}
+      className="group flex flex-col overflow-hidden rounded-[22px] border border-rule bg-card shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-brand-soft to-paper">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={listing.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={image} alt={listing.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center font-display text-sm uppercase tracking-widest text-ink-mute">Photo à venir</div>
+          <div className="flex h-full w-full items-center justify-center text-brand/40">
+            <CarFront className="h-16 w-16" strokeWidth={1.4} />
+          </div>
         )}
-        <div className="absolute left-2 top-2 flex gap-1">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           <KindTag listingType={listing.listingType} rentDuration={listing.rentDuration} />
-          {listing.vtcCompliant && <span className="font-display text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[2px] bg-go text-white">Conforme VTC</span>}
+          {listing.vtcCompliant && (
+            <span className="chip bg-go text-white shadow-sm"><BadgeCheck className="h-3.5 w-3.5" /> Conforme VTC</span>
+          )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        <p className="font-display text-lg font-semibold uppercase leading-tight">{listing.title}</p>
-        <p className="text-sm text-ink-soft">
-          {listing.year} · {Number(listing.mileage).toLocaleString('fr-FR')} km
-          {listing.fuelType ? ` · ${FUEL_LABELS[listing.fuelType] ?? listing.fuelType}` : ''}
-        </p>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <p className="line-clamp-1 text-[15px] font-bold">{listing.title}</p>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-ink-mute">
+          <span>{listing.year}</span>
+          <span className="inline-flex items-center gap-1"><Gauge className="h-3.5 w-3.5" />{Number(listing.mileage).toLocaleString('fr-FR')} km</span>
+          {listing.fuelType && <span className="inline-flex items-center gap-1"><Fuel className="h-3.5 w-3.5" />{FUEL_LABELS[listing.fuelType] ?? listing.fuelType}</span>}
+        </div>
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <PricePlate price={listing.price} listingType={listing.listingType} rentDuration={listing.rentDuration} />
-          <span className="text-xs text-ink-mute text-right">{listing.locationCity}</span>
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-mute"><MapPin className="h-3.5 w-3.5" />{listing.locationCity}</span>
         </div>
       </div>
     </Link>
@@ -103,24 +102,27 @@ export function ListingCard({ listing }: { listing: CardListing }) {
 
 export function CardSkeleton() {
   return (
-    <div className="panel-soft overflow-hidden animate-pulse">
-      <div className="aspect-[4/3] bg-rule/60" />
-      <div className="space-y-2 p-3">
-        <div className="h-4 w-3/4 rounded bg-rule/70" />
-        <div className="h-3 w-1/2 rounded bg-rule/70" />
-        <div className="h-6 w-1/3 rounded bg-rule/70" />
+    <div className="overflow-hidden rounded-[22px] border border-rule bg-card">
+      <div className="aspect-[4/3] animate-pulse bg-rule/70" />
+      <div className="space-y-2 p-4">
+        <div className="h-4 w-3/4 animate-pulse rounded-full bg-rule" />
+        <div className="h-3 w-1/2 animate-pulse rounded-full bg-rule" />
+        <div className="h-5 w-1/3 animate-pulse rounded-full bg-rule" />
       </div>
     </div>
   )
 }
 
-// Titre de section facon panneau directionnel
-export function SectionHead({ title, href, cta }: { title: string; href?: string; cta?: string }) {
+export function SectionHead({ title, subtitle, href, cta, eyebrow }: { title: string; subtitle?: string; href?: string; cta?: string; eyebrow?: string }) {
   return (
-    <div className="mb-5 flex items-end justify-between gap-4 border-b-[1.5px] border-ink pb-2">
-      <h2 className="display text-3xl">{title}</h2>
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
+        <h2 className="display text-3xl sm:text-4xl">{title}</h2>
+        {subtitle && <p className="mt-2 max-w-xl text-ink-soft">{subtitle}</p>}
+      </div>
       {href && (
-        <Link href={href} className="font-display text-sm font-semibold uppercase tracking-wider hover:underline underline-offset-4">
+        <Link href={href} className="hidden flex-shrink-0 rounded-full border border-rule bg-card px-4 py-2 text-sm font-bold transition hover:border-ink-mute sm:inline-flex">
           {cta ?? 'Tout voir'} →
         </Link>
       )}

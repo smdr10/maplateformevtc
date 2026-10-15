@@ -64,29 +64,29 @@ export default function NewServicePage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F3F1EA' }}>
-        <div className="text-[#6B7789]">Verification...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F7F7F8' }}>
+        <div className="text-[#8A8F9A]">Verification...</div>
       </div>
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-[#0B1F3A] text-sm placeholder-gray-500 focus:outline-none transition-all"
-  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#D9D5C9' }
-  const labelClass = "block text-sm font-medium text-[#33465F] mb-1"
+  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-[#FF5500] text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputStyle = { backgroundColor: '#FFFFFF', borderColor: '#ECECEF' }
+  const labelClass = "block text-sm font-medium text-[#4B5160] mb-1"
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 min-h-screen">
       <div className="mb-8">
-        <Link href="/services" className="text-sm text-[#6B7789] hover:underline transition-colors">← Retour aux services</Link>
-        <h1 className="text-2xl font-bold text-[#0B1F3A] mt-3">Proposer mon service</h1>
-        <p className="text-[#6B7789] text-sm mt-1">Creez votre fiche professionnelle et soyez contacte par des chauffeurs VTC</p>
+        <Link href="/services" className="text-sm text-[#8A8F9A] hover:underline transition-colors">← Retour aux services</Link>
+        <h1 className="text-2xl font-bold text-[#FF5500] mt-3">Proposer mon service</h1>
+        <p className="text-[#8A8F9A] text-sm mt-1">Creez votre fiche professionnelle et soyez contacte par des chauffeurs VTC</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
+        <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
       )}
 
-      <div className="rounded-[4px] p-6 space-y-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
+      <div className="rounded-[20px] p-6 space-y-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
 
         <div>
           <label className={labelClass}>Nom de votre service / entreprise <span className="text-red-500">*</span></label>
@@ -98,11 +98,11 @@ export default function NewServicePage() {
           <div className="grid grid-cols-2 gap-3">
             {CATEGORIES.map(cat => (
               <button key={cat.value} type="button" onClick={() => update('category', cat.value)}
-                className="p-3 rounded-[3px] border-2 text-left transition-all"
-                style={{ borderColor: form.category === cat.value ? '#0B1F3A' : '#D9D5C9', backgroundColor: form.category === cat.value ? '#FFF3CC' : '#F3F1EA' }}>
+                className="p-3 rounded-xl border-2 text-left transition-all"
+                style={{ borderColor: form.category === cat.value ? '#FF5500' : '#ECECEF', backgroundColor: form.category === cat.value ? '#FFF1E8' : '#F7F7F8' }}>
                 <span className="text-xl block mb-1">{cat.icon}</span>
-                <p className="text-sm font-medium text-[#0B1F3A]">{cat.label}</p>
-                <p className="text-xs mt-0.5 text-[#6B7789]">{cat.desc}</p>
+                <p className="text-sm font-medium text-[#FF5500]">{cat.label}</p>
+                <p className="text-xs mt-0.5 text-[#8A8F9A]">{cat.desc}</p>
               </button>
             ))}
           </div>
@@ -136,10 +136,10 @@ export default function NewServicePage() {
         </div>
 
         <div className="pt-2 flex gap-3">
-          <Link href="/services" className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-[#33465F] text-center transition-all" style={{ backgroundColor: '#F3F1EA', border: '1px solid #D9D5C9' }}>
+          <Link href="/services" className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[#4B5160] text-center transition-all" style={{ backgroundColor: '#F7F7F8', border: '1px solid #ECECEF' }}>
             Annuler
           </Link>
-          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#0B1F3A' }}>
+          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
             {loading ? 'Publication...' : 'Publier ma fiche'}
           </button>
         </div>

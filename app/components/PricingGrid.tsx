@@ -33,10 +33,10 @@ export default function PricingGrid({
   return (
     <div>
       <div className="mb-6 flex justify-center">
-        <div className="inline-flex rounded-[3px] border-[1.5px] border-ink bg-card p-1" role="tablist" aria-label="Périodicité">
+        <div className="inline-flex rounded-xl border border-rule bg-card p-1" role="tablist" aria-label="Périodicité">
           {([['month', 'Mensuel'], ['year', 'Annuel · 2 mois offerts']] as const).map(([v, l]) => (
             <button key={v} type="button" role="tab" aria-selected={interval === v} onClick={() => setInterval(v)}
-              className={`rounded-[2px] px-4 py-1.5 font-display text-sm font-semibold uppercase tracking-wider ${interval === v ? 'bg-ink text-paper' : ''}`}>
+              className={`rounded-full px-4 py-1.5 text-sm font-bold ${interval === v ? 'bg-ink text-white' : ''}`}>
               {l}
             </button>
           ))}
@@ -52,10 +52,10 @@ export default function PricingGrid({
           const featured = tier === highlight
           const available = !paid || plans.billing[tier]
           return (
-            <div key={tier} className={`relative flex flex-col rounded-[4px] border-[1.5px] border-ink bg-card ${featured ? 'lg:-translate-y-2' : ''}`}>
-              <div className={`border-b-[1.5px] border-ink px-5 py-3 ${featured ? 'bg-signal' : tier === 'flotte' ? 'bg-ink text-paper' : ''}`}>
+            <div key={tier} className={`relative flex flex-col rounded-[24px] border border-rule bg-card ${featured ? 'lg:-translate-y-2' : ''}`}>
+              <div className={`border-b border-rule px-5 py-3 ${featured ? 'bg-brand text-white' : tier === 'flotte' ? 'bg-ink text-white' : ''}`}>
                 <p className="display text-3xl">{name}</p>
-                <p className={`text-sm ${tier === 'flotte' && !featured ? 'text-paper/75' : 'text-ink-soft'}`}>{pitch}</p>
+                <p className={`text-sm ${featured || tier === 'flotte' ? 'text-white/80' : 'text-ink-soft'}`}>{pitch}</p>
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <p className="flex items-baseline gap-1">

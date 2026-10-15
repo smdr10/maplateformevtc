@@ -80,7 +80,7 @@ export default function AbonnementPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <Link href="/espace" className="text-sm text-ink-mute hover:underline">← Mon espace</Link>
-      <div className="mb-8 mt-3 flex flex-wrap items-end justify-between gap-4 border-b-[1.5px] border-ink pb-3">
+      <div className="mb-8 mt-3 flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-3">
         <div>
           <p className="eyebrow">Mon abonnement</p>
           <h1 className="display mt-1 text-5xl">Pack {TIER_NAME[me.plan]}</h1>
@@ -102,7 +102,7 @@ export default function AbonnementPage() {
       </div>
 
       {message && (
-        <div className={`mb-6 rounded-[3px] border-[1.5px] p-4 text-sm ${message.ok ? 'border-go bg-go-soft text-go' : 'border-stop bg-stop-soft text-stop'}`}>{message.text}</div>
+        <div className={`mb-6 rounded-xl border-[1.5px] p-4 text-sm ${message.ok ? 'border-go bg-go-soft text-go' : 'border-stop bg-stop-soft text-stop'}`}>{message.text}</div>
       )}
 
       <PricingGrid plans={plans} currentTier={me.plan} busy={busy} highlight={me.plan === 'pro' ? 'flotte' : 'pro'} onChoose={choose} />

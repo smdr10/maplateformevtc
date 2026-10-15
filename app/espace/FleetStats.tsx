@@ -80,9 +80,9 @@ export default function FleetStats() {
         <div className="mt-4 flex h-28 items-end gap-[3px]" role="img" aria-label={`Vues par jour sur ${stats.periodDays} jours`}>
           {stats.trend.map(t => (
             <div key={t.day} className="group relative flex-1">
-              <div className="w-full rounded-t-[1px] bg-ink" style={{ height: `${Math.max(2, (t.views / max) * 100)}%` }} />
-              {t.contacts > 0 && <div className="absolute inset-x-0 bottom-0 h-1 bg-signal" />}
-              <span className="pointer-events-none absolute -top-7 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-[2px] bg-ink px-1.5 py-0.5 text-[11px] text-paper group-hover:block">
+              <div className="w-full rounded-t-md bg-brand" style={{ height: `${Math.max(2, (t.views / max) * 100)}%` }} />
+              {t.contacts > 0 && <div className="absolute inset-x-0 bottom-0 h-1 bg-ink" />}
+              <span className="pointer-events-none absolute -top-7 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-ink px-1.5 py-0.5 text-[11px] text-white group-hover:block">
                 {new Date(t.day).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {t.views} vues · {t.contacts} contacts
               </span>
             </div>
@@ -93,14 +93,14 @@ export default function FleetStats() {
 
       {/* Par vehicule */}
       <section className="panel overflow-hidden">
-        <h2 className="display border-b-[1.5px] border-ink bg-ink px-5 py-3 text-xl text-paper">Performance par véhicule</h2>
+        <h2 className="px-5 pb-1 pt-5 text-xl font-extrabold tracking-tight">Performance par véhicule</h2>
         {stats.vehicles.length === 0 ? (
           <p className="p-5 text-sm text-ink-mute">Publiez vos véhicules pour suivre leurs performances.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-rule text-left font-display text-xs uppercase tracking-wider text-ink-mute">
+                <tr className="border-b border-rule text-left font-display text-xs text-ink-mute">
                   <th className="px-5 py-2 font-semibold">Véhicule</th>
                   <th className="px-3 py-2 text-right font-semibold">Vues</th>
                   <th className="px-3 py-2 text-right font-semibold">Contacts</th>
@@ -119,8 +119,8 @@ export default function FleetStats() {
                         <p className="font-medium">{v.title}</p>
                         <p className="text-xs text-ink-mute">{v.city}{rented ? ` · loué jusqu’au ${new Date(v.availableFrom!).toLocaleDateString('fr-FR')}` : ''}</p>
                       </td>
-                      <td className="px-3 py-3 text-right font-display text-lg font-semibold">{v.views}</td>
-                      <td className="px-3 py-3 text-right font-display text-lg font-semibold">{v.contacts}</td>
+                      <td className="px-3 py-3 text-right text-base font-bold">{v.views}</td>
+                      <td className="px-3 py-3 text-right text-base font-bold">{v.contacts}</td>
                       <td className="px-3 py-3 text-right">{v.contactRate != null ? `${v.contactRate} %` : '—'}</td>
                       <td className="px-3 py-3 text-right">{v.favorites}</td>
                       <td className="px-5 py-3 text-right">
@@ -154,12 +154,12 @@ export default function FleetStats() {
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {stats.demand.map(d => (
-              <div key={d.city} className="rounded-[3px] border border-rule p-4">
+              <div key={d.city} className="rounded-xl border border-rule p-4">
                 <p className="display text-2xl capitalize">{d.city}</p>
                 <dl className="mt-3 grid grid-cols-3 gap-2">
-                  <div><dt className="text-xs text-ink-mute">Recherches</dt><dd className="font-display text-2xl font-semibold">{d.searches}</dd></div>
-                  <div><dt className="text-xs text-ink-mute">Location semaine</dt><dd className="font-display text-2xl font-semibold">{d.weekRentals}</dd></div>
-                  <div><dt className="text-xs text-ink-mute">Annonces en ligne</dt><dd className="font-display text-2xl font-semibold">{d.supply}</dd></div>
+                  <div><dt className="text-xs text-ink-mute">Recherches</dt><dd className="text-2xl font-extrabold">{d.searches}</dd></div>
+                  <div><dt className="text-xs text-ink-mute">Location semaine</dt><dd className="text-2xl font-extrabold">{d.weekRentals}</dd></div>
+                  <div><dt className="text-xs text-ink-mute">Annonces en ligne</dt><dd className="text-2xl font-extrabold">{d.supply}</dd></div>
                 </dl>
                 <p className="mt-2 text-sm text-ink-soft">
                   {d.searchesPerListing != null ? `${d.searchesPerListing} recherche(s) par annonce en ligne` : 'Aucune annonce en ligne : la demande n’est pas servie'}

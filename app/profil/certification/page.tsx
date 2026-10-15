@@ -27,15 +27,15 @@ interface CompanyResponse {
 }
 
 const STATUS_UI: Record<Company['verificationStatus'], { label: string; bg: string; border: string; color: string }> = {
-  unverified: { label: 'Non certifié', bg: '#F3F1EA', border: '#D9D5C9', color: '#6B7789' },
+  unverified: { label: 'Non certifié', bg: '#F7F7F8', border: '#ECECEF', color: '#8A8F9A' },
   pending: { label: 'Verification en cours', bg: '#FFFBEB', border: '#FDE68A', color: '#B45309' },
   verified: { label: 'Pro certifié', bg: '#F0FFF4', border: '#BBF7D0', color: '#15803D' },
   rejected: { label: 'Certification refusée', bg: '#FFF0F0', border: '#FFD0D0', color: '#DC2626' },
-  expired: { label: 'Certification a renouveler', bg: '#FFF3CC', border: '#FFC72C', color: '#0B1F3A' },
+  expired: { label: 'Certification a renouveler', bg: '#FFF1E8', border: '#FFD0B0', color: '#16181D' },
 }
 
-const inputStyle = { backgroundColor: '#F3F1EA', borderColor: '#D9D5C9', color: '#0B1F3A' }
-const inputClass = 'w-full px-4 py-2.5 border rounded-[3px] text-sm placeholder-gray-400 focus:outline-none focus:border-[#0B1F3A]'
+const inputStyle = { backgroundColor: '#F7F7F8', borderColor: '#ECECEF', color: '#16181D' }
+const inputClass = 'w-full px-4 py-2.5 border rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:border-[#FF5500]'
 
 export default function CertificationPage() {
   const router = useRouter()
@@ -72,7 +72,7 @@ export default function CertificationPage() {
   }, [fetchCompany, applyData])
 
   if (!data) {
-    return <div className="min-h-screen flex items-center justify-center" style={{ color: '#6B7789' }}>Chargement...</div>
+    return <div className="min-h-screen flex items-center justify-center" style={{ color: '#8A8F9A' }}>Chargement...</div>
   }
 
   const status = data.company?.verificationStatus ?? 'unverified'
@@ -139,58 +139,58 @@ export default function CertificationPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 min-h-screen">
-      <Link href="/profil" className="text-sm" style={{ color: '#6B7789' }}>← Mon profil</Link>
-      <h1 className="text-2xl font-bold mt-2" style={{ color: '#0B1F3A' }}>Certification de ma société</h1>
-      <p className="text-sm mt-1" style={{ color: '#6B7789' }}>
+      <Link href="/profil" className="text-sm" style={{ color: '#8A8F9A' }}>← Mon profil</Link>
+      <h1 className="text-2xl font-bold mt-2" style={{ color: '#16181D' }}>Certification de ma société</h1>
+      <p className="text-sm mt-1" style={{ color: '#8A8F9A' }}>
         Gratuit, quel que soit votre pack. Le badge « Pro certifié » rassure les acheteurs et les chauffeurs.
       </p>
 
-      <div className="mt-5 rounded-[4px] p-4" style={{ backgroundColor: ui.bg, border: `1px solid ${ui.border}` }}>
+      <div className="mt-5 rounded-[20px] p-4" style={{ backgroundColor: ui.bg, border: `1px solid ${ui.border}` }}>
         <p className="text-sm font-bold" style={{ color: ui.color }}>{ui.label}</p>
-        {status === 'pending' && <p className="text-sm mt-1" style={{ color: '#33465F' }}>Votre dossier est en cours d&apos;examen. Vous serez prevenu par email.</p>}
+        {status === 'pending' && <p className="text-sm mt-1" style={{ color: '#4B5160' }}>Votre dossier est en cours d&apos;examen. Vous serez prevenu par email.</p>}
         {status === 'verified' && data.company?.verificationExpiresAt && (
-          <p className="text-sm mt-1" style={{ color: '#33465F' }}>Valable jusqu&apos;au {new Date(data.company.verificationExpiresAt).toLocaleDateString('fr-FR')}.</p>
+          <p className="text-sm mt-1" style={{ color: '#4B5160' }}>Valable jusqu&apos;au {new Date(data.company.verificationExpiresAt).toLocaleDateString('fr-FR')}.</p>
         )}
         {status === 'rejected' && data.company?.rejectionReason && (
-          <p className="text-sm mt-1" style={{ color: '#33465F' }}>Motif : {data.company.rejectionReason}. Corrigez votre dossier puis renvoyez-le.</p>
+          <p className="text-sm mt-1" style={{ color: '#4B5160' }}>Motif : {data.company.rejectionReason}. Corrigez votre dossier puis renvoyez-le.</p>
         )}
       </div>
 
       {message && (
-        <div className="mt-4 p-3 rounded-[3px] text-sm" style={{ backgroundColor: message.ok ? '#F0FFF4' : '#FFF0F0', color: message.ok ? '#15803D' : '#DC2626' }}>
+        <div className="mt-4 p-3 rounded-xl text-sm" style={{ backgroundColor: message.ok ? '#F0FFF4' : '#FFF0F0', color: message.ok ? '#15803D' : '#DC2626' }}>
           {message.text}
         </div>
       )}
 
       {/* 1. SOCIETE */}
-      <form onSubmit={saveCompany} className="mt-6 rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-        <h2 className="font-bold" style={{ color: '#0B1F3A' }}>1. Votre société</h2>
+      <form onSubmit={saveCompany} className="mt-6 rounded-[20px] p-6 space-y-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+        <h2 className="font-bold" style={{ color: '#16181D' }}>1. Votre société</h2>
         <fieldset disabled={!editable} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: '#33465F' }}>Raison sociale *</label>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: '#4B5160' }}>Raison sociale *</label>
               <input value={form.legalName} onChange={e => setForm(f => ({ ...f, legalName: e.target.value }))} required className={inputClass} style={inputStyle} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: '#33465F' }}>SIRET (14 chiffres) *</label>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: '#4B5160' }}>SIRET (14 chiffres) *</label>
               <input value={form.siret} onChange={e => setForm(f => ({ ...f, siret: e.target.value }))} inputMode="numeric" placeholder="123 456 789 00012" className={inputClass} style={inputStyle} />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: '#33465F' }}>Forme juridique *</label>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#4B5160' }}>Forme juridique *</label>
             <select value={form.legalForm} onChange={e => setForm(f => ({ ...f, legalForm: e.target.value }))} className={inputClass} style={inputStyle}>
               <option value="">Choisir...</option>
               {Object.entries(data.labels.legalForms).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: '#33465F' }}>Vos activites * <span className="font-normal" style={{ color: '#6B7789' }}>(plusieurs choix possibles)</span></label>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: '#4B5160' }}>Vos activites * <span className="font-normal" style={{ color: '#8A8F9A' }}>(plusieurs choix possibles)</span></label>
             <div className="flex flex-wrap gap-2">
               {Object.entries(data.labels.activities).map(([v, l]) => {
                 const on = form.activities.includes(v)
                 return (
                   <button key={v} type="button" onClick={() => toggleActivity(v)} className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                    style={{ borderColor: on ? '#0B1F3A' : '#D9D5C9', backgroundColor: on ? '#FFF3CC' : '#FFFFFF', color: on ? '#0B1F3A' : '#6B7789' }}>
+                    style={{ borderColor: on ? '#FF5500' : '#ECECEF', backgroundColor: on ? '#FFF1E8' : '#FFFFFF', color: on ? '#16181D' : '#8A8F9A' }}>
                     {l}
                   </button>
                 )
@@ -204,7 +204,7 @@ export default function CertificationPage() {
           </div>
         </fieldset>
         {editable && (
-          <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-[3px] text-sm font-bold text-white disabled:opacity-50" style={{ backgroundColor: '#0B1F3A' }}>
+          <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ backgroundColor: '#FF5500' }}>
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>
         )}
@@ -212,22 +212,22 @@ export default function CertificationPage() {
 
       {/* 2. DOCUMENTS */}
       {data.company && (
-        <div className="mt-6 rounded-[4px] p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold" style={{ color: '#0B1F3A' }}>2. Vos justificatifs</h2>
-          <p className="text-xs mt-1 mb-4" style={{ color: '#6B7789' }}>
+        <div className="mt-6 rounded-[20px] p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold" style={{ color: '#16181D' }}>2. Vos justificatifs</h2>
+          <p className="text-xs mt-1 mb-4" style={{ color: '#8A8F9A' }}>
             PDF, JPG ou PNG, 10 Mo max. Stockes de facon privee, consultes uniquement par notre equipe et supprimes 30 jours apres la decision.
           </p>
           <div className="space-y-3">
             {docRows.map(row => {
               const uploaded = docs.filter(d => row.types.includes(d.type))
               return (
-                <div key={row.types.join()} className="rounded-[3px] p-3" style={{ border: '1px solid #E6E2D6' }}>
+                <div key={row.types.join()} className="rounded-xl p-3" style={{ border: '1px solid #F1F1F3' }}>
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium" style={{ color: '#0B1F3A' }}>
+                    <p className="text-sm font-medium" style={{ color: '#16181D' }}>
                       {uploaded.length > 0 ? '✅' : '⬜'} {row.label}
                     </p>
                     {editable && (
-                      <label className="text-xs font-bold cursor-pointer flex-shrink-0" style={{ color: '#0B1F3A' }}>
+                      <label className="text-xs font-bold cursor-pointer flex-shrink-0" style={{ color: '#16181D' }}>
                         {uploadingType === row.types[0] ? 'Envoi...' : '+ Ajouter'}
                         <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="hidden" disabled={!!uploadingType}
                           onChange={e => { const f = e.target.files?.[0]; if (f) upload(row.types[0], f); e.target.value = '' }} />
@@ -235,7 +235,7 @@ export default function CertificationPage() {
                     )}
                   </div>
                   {uploaded.map(d => (
-                    <div key={d.id} className="flex items-center justify-between mt-2 text-xs" style={{ color: '#6B7789' }}>
+                    <div key={d.id} className="flex items-center justify-between mt-2 text-xs" style={{ color: '#8A8F9A' }}>
                       <span className="truncate">{d.fileName}</span>
                       {editable && <button type="button" onClick={() => removeDoc(d.id)} style={{ color: '#B42318' }}>Supprimer</button>}
                     </div>
@@ -249,15 +249,15 @@ export default function CertificationPage() {
 
       {/* 3. ENVOI */}
       {data.company && editable && (
-        <div className="mt-6 rounded-[4px] p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #D9D5C9' }}>
-          <h2 className="font-bold" style={{ color: '#0B1F3A' }}>3. Envoyer mon dossier</h2>
+        <div className="mt-6 rounded-[20px] p-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #ECECEF' }}>
+          <h2 className="font-bold" style={{ color: '#16181D' }}>3. Envoyer mon dossier</h2>
           {!canSubmit && (
-            <p className="text-sm mt-2" style={{ color: '#6B7789' }}>
+            <p className="text-sm mt-2" style={{ color: '#8A8F9A' }}>
               {!identityComplete ? 'Renseignez et enregistrez SIRET, forme juridique et activites. ' : ''}
               {missingRequired.length > 0 || !hasRegistration ? 'Ajoutez tous les justificatifs demandes.' : ''}
             </p>
           )}
-          <button type="button" onClick={submit} disabled={!canSubmit} className="mt-4 w-full py-3 rounded-[3px] text-sm font-bold text-white disabled:opacity-40" style={{ backgroundColor: '#0B1F3A' }}>
+          <button type="button" onClick={submit} disabled={!canSubmit} className="mt-4 w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-40" style={{ backgroundColor: '#FF5500' }}>
             Envoyer pour certification
           </button>
         </div>

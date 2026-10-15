@@ -142,7 +142,7 @@ export default function AdminPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0B1F3A' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0A0F' }}>
       <div style={{ color: '#666' }}>Chargement...</div>
     </div>
   )
@@ -158,16 +158,16 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0B1F3A' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#0A0A0F' }}>
       <div className="max-w-6xl mx-auto px-4 py-8">
 
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#FFC72C' }}>Dashboard Admin</h1>
+            <h1 className="text-2xl font-bold" style={{ color: '#FF5500' }}>Dashboard Admin</h1>
             <p className="text-sm mt-1" style={{ color: '#666' }}>MaPlateformeVTC — Panneau de controle</p>
           </div>
-          <a href="/admin/certifications" className="px-4 py-2 rounded-[3px] text-sm font-bold text-white" style={{ backgroundColor: '#FFC72C' }}>
+          <a href="/admin/certifications" className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: '#FF5500' }}>
             🛡️ Certifications pros
           </a>
         </div>
@@ -182,9 +182,9 @@ export default function AdminPage() {
               { label: 'Actives', value: stats.activeListings, icon: '✅' },
               { label: 'Signalements', value: reports.length, icon: '🚩', highlight: reports.length > 0 },
             ].map(s => (
-              <div key={s.label} className="rounded-[4px] p-4 text-center" style={{ backgroundColor: s.highlight ? '#2A2410' : '#102846', border: `1px solid ${s.highlight ? '#5C4A12' : '#1E3A5F'}` }}>
+              <div key={s.label} className="rounded-[20px] p-4 text-center" style={{ backgroundColor: s.highlight ? '#1A0800' : '#111118', border: `1px solid ${s.highlight ? '#3A1500' : '#1A1A2E'}` }}>
                 <p className="text-xl mb-1">{s.icon}</p>
-                <p className="text-2xl font-bold" style={{ color: s.highlight ? '#FFC72C' : '#FFFFFF' }}>{s.value}</p>
+                <p className="text-2xl font-bold" style={{ color: s.highlight ? '#FF5500' : '#FFFFFF' }}>{s.value}</p>
                 <p className="text-xs mt-1" style={{ color: '#666' }}>{s.label}</p>
               </div>
             ))}
@@ -200,11 +200,11 @@ export default function AdminPage() {
             { v: 'reports', l: `Signalements${reports.length > 0 ? ` (${reports.length})` : ''}` },
           ].map(tab => (
             <button key={tab.v} onClick={() => setActiveTab(tab.v)}
-              className="px-4 py-2 rounded-[3px] text-sm font-medium transition-all"
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
               style={{
-                backgroundColor: activeTab === tab.v ? '#FFC72C' : '#102846',
+                backgroundColor: activeTab === tab.v ? '#FF5500' : '#111118',
                 color: activeTab === tab.v ? '#FFFFFF' : '#666',
-                border: activeTab === tab.v ? 'none' : '1px solid #1E3A5F'
+                border: activeTab === tab.v ? 'none' : '1px solid #1A1A2E'
               }}>
               {tab.l}
             </button>
@@ -213,16 +213,16 @@ export default function AdminPage() {
 
         {/* ANNONCES */}
         {activeTab === 'listings' && (
-          <div className="rounded-[4px] overflow-hidden" style={{ backgroundColor: '#102846', border: '1px solid #1E3A5F' }}>
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
             {listings.length === 0 ? (
               <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucune annonce</p>
             ) : listings.map(listing => (
-              <div key={listing.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1E3A5F' }}>
-                <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#1E3A5F' }}>
+              <div key={listing.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
+                <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: '#1A1A2E' }}>
                   {listing.images?.[0] ? (
                     <img src={listing.images[0].imageUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ color: '#0B1F3A' }}>
+                    <div className="w-full h-full flex items-center justify-center" style={{ color: '#0A0A0F' }}>
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                   )}
@@ -234,7 +234,7 @@ export default function AdminPage() {
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: statusColors[listing.status]?.bg, color: statusColors[listing.status]?.color }}>
                       {statusColors[listing.status]?.label}
                     </span>
-                    <span className="font-bold text-sm" style={{ color: '#FFC72C' }}>{parseFloat(listing.price?.toString() || '0').toLocaleString()} EUR</span>
+                    <span className="font-bold text-sm" style={{ color: '#FF5500' }}>{parseFloat(listing.price?.toString() || '0').toLocaleString()} EUR</span>
                   </div>
                 </div>
                 {listing.status === 'pending' && (
@@ -244,9 +244,9 @@ export default function AdminPage() {
                     </button>
                     {rejectId === listing.id ? (
                       <div className="flex flex-col gap-1">
-                        <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif..." className="text-xs px-2 py-1 rounded-lg focus:outline-none text-white" style={{ backgroundColor: '#1E3A5F', border: '1px solid #2A2A3E', width: '120px' }} />
+                        <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Motif..." className="text-xs px-2 py-1 rounded-lg focus:outline-none text-white" style={{ backgroundColor: '#1A1A2E', border: '1px solid #2A2A3E', width: '120px' }} />
                         <button onClick={() => rejectListing(listing.id)} className="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style={{ backgroundColor: '#B42318' }}>Confirmer</button>
-                        <button onClick={() => setRejectId(null)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1E3A5F', color: '#666' }}>Annuler</button>
+                        <button onClick={() => setRejectId(null)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A1A2E', color: '#666' }}>Annuler</button>
                       </div>
                     ) : (
                       <button onClick={() => setRejectId(listing.id)} className="text-xs px-3 py-1.5 rounded-lg font-medium" style={{ backgroundColor: '#1A0000', color: '#B42318' }}>
@@ -262,16 +262,16 @@ export default function AdminPage() {
 
         {/* SERVICES */}
         {activeTab === 'services' && (
-          <div className="rounded-[4px] overflow-hidden" style={{ backgroundColor: '#102846', border: '1px solid #1E3A5F' }}>
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
             {services.length === 0 ? (
               <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun service</p>
             ) : services.map(service => (
-              <div key={service.id} className="p-4 flex items-center gap-3 transition-colors" style={{ borderBottom: '1px solid #1E3A5F' }}>
+              <div key={service.id} className="p-4 flex items-center gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-white">{service.name}</p>
                   <p className="text-xs mt-0.5" style={{ color: '#666' }}>{service.user.name} · {service.city} · {new Date(service.createdAt).toLocaleDateString('fr-FR')}</p>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: service.isVisible ? '#001A0A' : '#1E3A5F', color: service.isVisible ? '#15803D' : '#666' }}>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: service.isVisible ? '#001A0A' : '#1A1A2E', color: service.isVisible ? '#15803D' : '#666' }}>
                   {service.isVisible ? 'Visible' : 'Masque'}
                 </span>
                 <button onClick={() => toggleService(service.id, service.isVisible)} className="text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: service.isVisible ? '#1A0000' : '#001A0A', color: service.isVisible ? '#B42318' : '#15803D' }}>
@@ -284,25 +284,25 @@ export default function AdminPage() {
 
         {/* AVIS */}
         {activeTab === 'reviews' && (
-          <div className="rounded-[4px] overflow-hidden" style={{ backgroundColor: '#102846', border: '1px solid #1E3A5F' }}>
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
             {reviews.length === 0 ? (
               <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun avis</p>
             ) : reviews.map(review => (
-              <div key={review.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1E3A5F' }}>
+              <div key={review.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-medium text-sm text-white">{review.user.name}</p>
                     <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(s => <span key={s} className="text-xs" style={{ color: s <= review.rating ? '#FFC72C' : '#0B1F3A' }}>★</span>)}
+                      {[1,2,3,4,5].map(s => <span key={s} className="text-xs" style={{ color: s <= review.rating ? '#FF5500' : '#0A0A0F' }}>★</span>)}
                     </div>
                   </div>
-                  <p className="text-xs" style={{ color: '#6B7789' }}>{review.comment}</p>
+                  <p className="text-xs" style={{ color: '#8A8F9A' }}>{review.comment}</p>
                 </div>
                 <div className="flex flex-col gap-1">
                   <button onClick={() => toggleReview(review.id, review.isVisible)} className="text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: review.isVisible ? '#1A0000' : '#001A0A', color: review.isVisible ? '#B42318' : '#15803D' }}>
                     {review.isVisible ? 'Masquer' : 'Afficher'}
                   </button>
-                  <button onClick={() => deleteReview(review.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1E3A5F', color: '#B42318' }}>
+                  <button onClick={() => deleteReview(review.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A1A2E', color: '#B42318' }}>
                     Supprimer
                   </button>
                 </div>
@@ -313,19 +313,19 @@ export default function AdminPage() {
 
         {/* SIGNALEMENTS */}
         {activeTab === 'reports' && (
-          <div className="rounded-[4px] overflow-hidden" style={{ backgroundColor: '#102846', border: '1px solid #1E3A5F' }}>
+          <div className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
             {reports.length === 0 ? (
               <p className="text-center py-10 text-sm" style={{ color: '#666' }}>Aucun signalement</p>
             ) : reports.map(report => (
-              <div key={report.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1E3A5F' }}>
+              <div key={report.id} className="p-4 flex gap-3 transition-colors" style={{ borderBottom: '1px solid #1A1A2E' }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#2A2410', color: '#FFC72C', border: '1px solid #5C4A12' }}>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#1A0800', color: '#FF5500', border: '1px solid #3A1500' }}>
                       🚩 Signalement
                     </span>
                     <p className="font-medium text-sm truncate text-white">{report.listing.title}</p>
                   </div>
-                  <p className="text-xs mb-1" style={{ color: '#6B7789' }}>Motif : <strong style={{ color: '#FFC72C' }}>{report.reason}</strong></p>
+                  <p className="text-xs mb-1" style={{ color: '#8A8F9A' }}>Motif : <strong style={{ color: '#FF5500' }}>{report.reason}</strong></p>
                   <p className="text-xs" style={{ color: '#666' }}>
                     Signale par {report.reporter.name} · {new Date(report.createdAt).toLocaleDateString('fr-FR')}
                   </p>
@@ -333,7 +333,7 @@ export default function AdminPage() {
                 <div className="flex flex-col gap-1 flex-shrink-0">
                   <a href={`/annonces/${report.listing.id}`} target="_blank" rel="noopener noreferrer"
                     className="text-xs px-3 py-1.5 rounded-lg text-center transition-all"
-                    style={{ backgroundColor: '#1E3A5F', border: '1px solid #2A2A3E', color: '#6B7789' }}>
+                    style={{ backgroundColor: '#1A1A2E', border: '1px solid #2A2A3E', color: '#8A8F9A' }}>
                     Voir
                   </a>
                   <button onClick={() => deleteReport(report.id)} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: '#1A0000', color: '#B42318' }}>

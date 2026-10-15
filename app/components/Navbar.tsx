@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react'
+import { Bell, ChevronDown, Plus, Search } from 'lucide-react'
 
 interface User {
   id: string
@@ -21,10 +23,9 @@ interface Notification {
 
 const NAV_LINKS = [
   { href: '/annonces?type=sale', label: 'Acheter' },
-  { href: '/annonces?type=rent&rentDuration=week', label: 'Louer à la semaine' },
+  { href: '/annonces?type=rent&rentDuration=week', label: 'Louer' },
   { href: '/annonces?rentDuration=loa', label: 'LOA' },
-  { href: '/services', label: 'Garages & services' },
-  { href: '/avis', label: 'Avis' },
+  { href: '/services', label: 'Services pros' },
 ]
 
 const MENU_LINKS = [
@@ -38,14 +39,8 @@ const MENU_LINKS = [
 
 export function Logo({ inverted = false }: { inverted?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2">
-      <span className="inline-flex h-8 items-stretch overflow-hidden rounded-[3px] border-[1.5px] border-ink bg-signal font-display text-sm font-bold">
-        <span className="flex items-center bg-plate px-1 text-[10px] text-white">F</span>
-        <span className="flex items-center px-1.5 text-ink">VTC</span>
-      </span>
-      <span className={`font-display text-xl font-bold uppercase tracking-wide ${inverted ? 'text-paper' : 'text-ink'}`}>
-        MaPlateforme<span className={inverted ? 'text-signal' : 'text-plate'}>VTC</span>
-      </span>
+    <span className={`text-xl font-extrabold tracking-tight ${inverted ? 'text-white' : 'text-ink'}`}>
+      MaPlateforme<span className="text-brand">VTC</span>
     </span>
   )
 }
@@ -58,9 +53,15 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [search, setSearch] = useState('')
+  const [scrolled, setScrolled] = useState(false)
+  const [hovered, setHovered] = useState<string | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const notifRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const { scrollY } = useScroll()
+
+  useMotionValueEvent(scrollY, 'change', y => setScrolled(y > 12))
 
   useEffect(() => {
     fetch('/api/auth/me', { credentials: 'include' })
@@ -78,6 +79,15 @@ export default function Navbar() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
   const openNotifications = async () => {
@@ -104,121 +114,116 @@ export default function Navbar() {
     }
   }
 
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  const searchForm = (
-    <form onSubmit={handleSearch} className="relative w-full">
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Tesla Model Y, Toyota C-HR, Marseille…"
-        aria-label="Rechercher un véhicule"
-        className="field pr-11"
-      />
-      <button type="submit" aria-label="Rechercher" className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[2px] bg-ink text-paper">
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-      </button>
-    </form>
-  )
+  // Sur l'accueil, la barre est transparente au-dessus du hero puis devient "verre depoli"
+  const overHero = pathname === '/' && !scrolled
 
   return (
-    <header className="sticky top-0 z-50 border-b-[1.5px] border-ink bg-paper">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center gap-4">
-          <Link href="/" className="flex-shrink-0" aria-label="Accueil MaPlateformeVTC">
-            <Logo />
-          </Link>
+    <motion.header
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className={`sticky top-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-300 ${
+        overHero ? 'bg-transparent' : 'bg-white/80 shadow-[0_1px_0_rgb(22_24_29_/_0.06),0_8px_30px_rgb(22_24_29_/_0.06)] backdrop-blur-xl'
+      }`}
+    >
+      <div className={`mx-auto flex max-w-7xl items-center gap-4 px-4 transition-[height] duration-300 ${scrolled ? 'h-16' : 'h-20'}`}>
+        <Link href="/" className="flex-shrink-0" aria-label="Accueil MaPlateformeVTC">
+          <Logo />
+        </Link>
 
-          <div className="mx-2 hidden max-w-lg flex-1 md:block">{searchForm}</div>
+        <nav aria-label="Rubriques" className="ml-4 hidden items-center lg:flex" onMouseLeave={() => setHovered(null)}>
+          {NAV_LINKS.map(item => (
+            <Link key={item.href} href={item.href} onMouseEnter={() => setHovered(item.href)}
+              className="relative rounded-full px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink">
+              {hovered === item.href && (
+                <motion.span layoutId="nav-hover" className="absolute inset-0 rounded-full bg-ink/[0.06]" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />
+              )}
+              <span className="relative">{item.label}</span>
+            </Link>
+          ))}
+        </nav>
 
-          <div className="ml-auto flex items-center gap-2">
-            {loading ? (
-              <div className="h-9 w-32 animate-pulse rounded-[3px] bg-rule" />
-            ) : user ? (
-              <>
-                <Link href="/annonces/new" className="btn btn-signal hidden lg:inline-flex !py-2 text-sm">+ Publier</Link>
+        <form onSubmit={handleSearch} className="relative ml-auto hidden w-64 md:block xl:w-80">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-mute" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un véhicule…" aria-label="Rechercher un véhicule"
+            className="w-full rounded-full border border-rule bg-white/90 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-brand focus:shadow-[0_0_0_4px_rgb(255_85_0_/_0.12)]" />
+        </form>
 
-                <div className="relative" ref={notifRef}>
-                  <button onClick={openNotifications} aria-label="Notifications" className="relative flex h-9 w-9 items-center justify-center rounded-[3px] border-[1.5px] border-transparent hover:border-ink">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    {unreadCount > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-[2px] bg-signal px-1 font-display text-[11px] font-bold text-ink">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
-                  </button>
+        <div className="ml-auto flex items-center gap-2 md:ml-0">
+          {loading ? (
+            <div className="h-10 w-28 animate-pulse rounded-full bg-rule" />
+          ) : user ? (
+            <>
+              <Link href="/annonces/new" className="btn btn-brand hidden !py-2.5 text-sm md:inline-flex">
+                <Plus className="h-4 w-4" strokeWidth={2.6} /> Publier
+              </Link>
+
+              <div className="relative" ref={notifRef}>
+                <button onClick={openNotifications} aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-ink/[0.06]">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </motion.span>
+                  )}
+                </button>
+                <AnimatePresence>
                   {notifOpen && (
-                    <div className="panel absolute right-0 z-50 mt-2 w-80 overflow-hidden">
-                      <p className="border-b border-rule px-4 py-3 font-display text-sm font-semibold uppercase tracking-wider">Notifications</p>
+                    <motion.div initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={{ duration: 0.18 }}
+                      className="panel absolute right-0 z-50 mt-2 w-80 overflow-hidden">
+                      <p className="border-b border-rule px-4 py-3 text-sm font-bold">Notifications</p>
                       <div className="max-h-72 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <p className="py-6 text-center text-sm text-ink-mute">Aucune notification</p>
+                          <p className="py-8 text-center text-sm text-ink-mute">Aucune notification</p>
                         ) : notifications.map(n => (
-                          <div key={n.id} className={`border-b border-rule px-4 py-3 ${!n.isRead ? 'bg-signal-soft' : ''}`}>
+                          <div key={n.id} className={`border-b border-rule px-4 py-3 last:border-0 ${!n.isRead ? 'bg-brand-soft' : ''}`}>
                             <p className="text-sm">{n.content.text}</p>
                             <p className="mt-1 text-xs text-ink-mute">{new Date(n.createdAt).toLocaleDateString('fr-FR')}</p>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
+              </div>
 
-                <div className="relative" ref={menuRef}>
-                  <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center gap-2 rounded-[3px] border-[1.5px] border-ink bg-card px-2 py-1">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-[2px] bg-ink font-display text-sm font-bold text-paper">
-                      {user.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="hidden text-sm font-medium md:block">{user.name.split(' ')[0]}</span>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </button>
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center gap-1.5 rounded-full border border-rule bg-white py-1 pl-1 pr-2.5 transition hover:shadow-[var(--shadow-soft)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-bold text-white">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-ink-mute transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
                   {menuOpen && (
-                    <div className="panel absolute right-0 z-50 mt-2 w-56 py-1">
-                      <p className="truncate border-b border-rule px-4 py-2 text-sm font-medium">{user.name}</p>
+                    <motion.div initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={{ duration: 0.18 }}
+                      className="panel absolute right-0 z-50 mt-2 w-60 overflow-hidden py-1.5">
+                      <div className="border-b border-rule px-4 pb-2.5 pt-1.5">
+                        <p className="truncate text-sm font-bold">{user.name}</p>
+                        <p className="truncate text-xs text-ink-mute">{user.email}</p>
+                      </div>
                       {MENU_LINKS.map(item => (
-                        <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm hover:bg-paper">
+                        <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm font-medium hover:bg-paper">
                           {item.label}
                         </Link>
                       ))}
                       {user.role === 'admin' && (
-                        <Link href="/admin" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm font-semibold text-plate hover:bg-paper">
-                          Administration
-                        </Link>
+                        <Link href="/admin" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm font-bold text-brand hover:bg-brand-soft">Administration</Link>
                       )}
-                      <button onClick={logout} className="mt-1 block w-full border-t border-rule px-4 py-2 text-left text-sm text-stop hover:bg-stop-soft">
-                        Se déconnecter
-                      </button>
-                    </div>
+                      <button onClick={logout} className="mt-1 block w-full border-t border-rule px-4 py-2.5 text-left text-sm font-medium text-stop hover:bg-stop-soft">Se déconnecter</button>
+                    </motion.div>
                   )}
-                </div>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="px-3 py-2 text-sm font-medium hover:underline underline-offset-4">Se connecter</Link>
-                <Link href="/register" className="btn btn-ink !py-2 text-sm">Créer un compte</Link>
-              </>
-            )}
-          </div>
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-semibold hover:bg-ink/[0.06] sm:block">Se connecter</Link>
+              <Link href="/register" className="btn btn-brand !py-2.5 text-sm">Créer un compte</Link>
+            </>
+          )}
         </div>
-
-        <div className="pb-3 md:hidden">{searchForm}</div>
-
-        <nav aria-label="Rubriques" className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2">
-          {NAV_LINKS.map(item => (
-            <Link key={item.href} href={item.href} className="whitespace-nowrap rounded-[2px] px-2.5 py-1 font-display text-sm font-semibold uppercase tracking-wider hover:bg-ink hover:text-paper">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
       </div>
-    </header>
+    </motion.header>
   )
 }

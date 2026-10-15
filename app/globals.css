@@ -1,20 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #F8F8F8;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --border: #E8E8E8;
-  --orange: #FF5500;
-}
+/* ============================================================
+   Identite "Signaletique" : bleu nuit, jaune marquage, papier
+   ============================================================ */
+@theme {
+  --color-ink: #0B1F3A;        /* bleu nuit : textes, boutons, traits */
+  --color-ink-soft: #33465F;   /* textes secondaires */
+  --color-ink-mute: #6B7789;   /* legendes */
+  --color-paper: #F3F1EA;      /* fond papier */
+  --color-card: #FFFFFF;
+  --color-rule: #D9D5C9;       /* filets */
+  --color-signal: #FFC72C;     /* jaune marquage au sol */
+  --color-signal-soft: #FFF3CC;
+  --color-plate: #1D4ED8;      /* bande bleue de plaque */
+  --color-go: #15803D;         /* certifie, en ligne */
+  --color-go-soft: #E7F3EA;
+  --color-stop: #B42318;       /* erreurs, refus */
+  --color-stop-soft: #FBEAE8;
 
-body {
-  background-color: #F8F8F8;
-  color: #1A1A1A;
-  font-family: Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
 }
 
 html, body {
-  background-color: #F8F8F8;
-  color: #1A1A1A;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Titres facon panneau */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 0.95;
+  }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-plate);
+  }
+
+  /* Boutons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 3px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background-color 120ms, color 120ms, transform 80ms;
+    border: 1.5px solid var(--color-ink);
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-ink { background: var(--color-ink); color: var(--color-paper); }
+  .btn-ink:hover { background: #142D52; }
+  .btn-line { background: transparent; color: var(--color-ink); }
+  .btn-line:hover { background: var(--color-card); }
+  .btn-signal { background: var(--color-signal); color: var(--color-ink); border-color: var(--color-ink); }
+  .btn-signal:hover { background: #FFD45C; }
+
+  /* Cartes et champs */
+  .panel {
+    background: var(--color-card);
+    border: 1.5px solid var(--color-ink);
+    border-radius: 4px;
+  }
+  .panel-soft {
+    background: var(--color-card);
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+  }
+  .field {
+    width: 100%;
+    background: var(--color-card);
+    border: 1.5px solid var(--color-rule);
+    border-radius: 3px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+    color: var(--color-ink);
+  }
+  .field:focus { outline: none; border-color: var(--color-ink); }
+
+  /* Bande jaune/noire de chantier, utilisee comme separateur */
+  .hazard {
+    height: 8px;
+    background: repeating-linear-gradient(-45deg, var(--color-signal) 0 14px, var(--color-ink) 14px 28px);
+  }
 }

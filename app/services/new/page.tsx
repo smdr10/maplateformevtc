@@ -1,14 +1,14 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 const CATEGORIES = [
-  { value: 'maintenance', label: 'Entretien & Mecanique', icon: '🔧', desc: 'Garage, mecano, carrosserie, revision...' },
+  { value: 'maintenance', label: 'Entretien & Mécanique', icon: '🔧', desc: 'Garage, mecano, carrosserie, revision...' },
   { value: 'formation', label: 'Formation VTC', icon: '🎓', desc: 'Preparation examen, coaching, formations...' },
   { value: 'insurance', label: 'Assurance VTC', icon: '🛡️', desc: 'Assurance pro, RC, tous risques VTC...' },
-  { value: 'accessories', label: 'Accessoires & Equipement', icon: '🎒', desc: 'GPS, dashcam, housses, bornes...' },
+  { value: 'accessories', label: 'Accessoires & Équipement', icon: '🎒', desc: 'GPS, dashcam, housses, bornes...' },
 ]
 
 export default function NewServicePage() {
@@ -56,7 +56,7 @@ export default function NewServicePage() {
       }
       router.push('/services')
     } catch {
-      setError('Erreur reseau, reessayez')
+      setError('Erreur reseau, réessayez')
     } finally {
       setLoading(false)
     }
@@ -70,7 +70,7 @@ export default function NewServicePage() {
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
   const inputStyle = { backgroundColor: '#111118', borderColor: '#1A1A2E' }
   const labelClass = "block text-sm font-medium text-gray-400 mb-1"
 
@@ -83,10 +83,10 @@ export default function NewServicePage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
+        <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>
       )}
 
-      <div className="rounded-2xl p-6 space-y-5" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+      <div className="rounded-[4px] p-6 space-y-5" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
 
         <div>
           <label className={labelClass}>Nom de votre service / entreprise <span className="text-red-500">*</span></label>
@@ -94,12 +94,12 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className={labelClass}>Categorie <span className="text-red-500">*</span></label>
+          <label className={labelClass}>Catégorie <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-2 gap-3">
             {CATEGORIES.map(cat => (
               <button key={cat.value} type="button" onClick={() => update('category', cat.value)}
-                className="p-3 rounded-xl border-2 text-left transition-all"
-                style={{ borderColor: form.category === cat.value ? '#FF5500' : '#1A1A2E', backgroundColor: form.category === cat.value ? '#1A0800' : '#0A0A0F' }}>
+                className="p-3 rounded-[3px] border-2 text-left transition-all"
+                style={{ borderColor: form.category === cat.value ? '#0B1F3A' : '#1A1A2E', backgroundColor: form.category === cat.value ? '#1A0800' : '#0A0A0F' }}>
                 <span className="text-xl block mb-1">{cat.icon}</span>
                 <p className="text-sm font-medium text-white">{cat.label}</p>
                 <p className="text-xs mt-0.5 text-gray-500">{cat.desc}</p>
@@ -121,7 +121,7 @@ export default function NewServicePage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Telephone</label>
+            <label className={labelClass}>Téléphone</label>
             <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+33 6 12 34 56 78" className={inputClass} style={inputStyle} />
           </div>
           <div>
@@ -136,10 +136,10 @@ export default function NewServicePage() {
         </div>
 
         <div className="pt-2 flex gap-3">
-          <Link href="/services" className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-400 text-center transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
+          <Link href="/services" className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 text-center transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
             Annuler
           </Link>
-          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
+          <button onClick={handleSubmit} disabled={loading || !form.name || !form.category || !form.description || !form.city} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#0B1F3A' }}>
             {loading ? 'Publication...' : 'Publier ma fiche'}
           </button>
         </div>

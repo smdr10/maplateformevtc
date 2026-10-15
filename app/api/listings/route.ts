@@ -18,13 +18,31 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const perPage = 12
 
+    // Valeurs d'enum inconnues ignorees (evite une erreur 500)
+    const listingType = type && ['sale', 'rent'].includes(type) ? type : null
+    const fuelType = fuel && ['electric', 'hybrid', 'diesel', 'gasoline'].includes(fuel) ? fuel : null
+    const rentDuration = searchParams.get('rentDuration')
+    const duration = rentDuration && ['week', 'month', 'year', 'loa'].includes(rentDuration) ? rentDuration : null
+    // Recherche libre : chaque mot doit apparaitre dans le titre, la marque ou le modele
+    const words = (searchParams.get('q') || '').trim().split(/\s+/).filter(Boolean).slice(0, 5)
+
     const where: any = {
       status: 'active',
       deletedAt: null,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      ...(type && { listingType: type }),
-      ...(brand && { brand }),
-      ...(fuel && { fuelType: fuel }),
+      AND: [
+        { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+        ...words.map(w => ({
+          OR: [
+            { title: { contains: w, mode: 'insensitive' } },
+            { brand: { contains: w, mode: 'insensitive' } },
+            { model: { contains: w, mode: 'insensitive' } },
+          ],
+        })),
+      ],
+      ...(listingType && { listingType }),
+      ...(duration && { rentDuration: duration }),
+      ...(brand && { brand: { contains: brand, mode: 'insensitive' } }),
+      ...(fuelType && { fuelType }),
       ...(vtcOnly && { vtcCompliant: true }),
       ...(city && { locationCity: { contains: city, mode: 'insensitive' } }),
       ...((minPrice || maxPrice) && {

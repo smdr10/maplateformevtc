@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -53,7 +53,7 @@ export default function NewListingPage() {
     setLoading(true)
     try {
       const finalDescription = isLOA
-        ? `CONDITIONS LOA:\n- Acompte : ${form.loaAcompte} EUR\n- Loyer mensuel : ${form.price} EUR/mois\n- Duree : ${form.loaDuree} mois\n- Assurance incluse : ${form.loaAssurance}\n- Assistant inclus : ${form.loaAssistant}\n- Vehicule de relais : ${form.loaVehiculeRelais}\n\nDESCRIPTION:\n${form.description}`
+        ? `CONDITIONS LOA:\n- Acompte : ${form.loaAcompte} EUR\n- Loyer mensuel : ${form.price} EUR/mois\n- Duree : ${form.loaDuree} mois\n- Assurance incluse : ${form.loaAssurance}\n- Assistant inclus : ${form.loaAssistant}\n- Véhicule de relais : ${form.loaVehiculeRelais}\n\nDESCRIPTION:\n${form.description}`
         : form.description
 
       const res = await fetch('/api/listings', {
@@ -71,7 +71,7 @@ export default function NewListingPage() {
       setListingId(data.listing.id)
       setStep(4)
     } catch {
-      setError('Erreur reseau, reessayez')
+      setError('Erreur reseau, réessayez')
     } finally {
       setLoading(false)
     }
@@ -85,7 +85,7 @@ export default function NewListingPage() {
     )
   }
 
-  const inputClass = "w-full px-3 py-2.5 border rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
+  const inputClass = "w-full px-3 py-2.5 border rounded-[3px] text-white text-sm placeholder-gray-500 focus:outline-none transition-all"
   const inputStyle = { backgroundColor: '#111118', borderColor: '#1A1A2E' }
   const labelClass = "block text-sm font-medium text-gray-400 mb-1"
 
@@ -100,23 +100,23 @@ export default function NewListingPage() {
       <div className="flex gap-2 mb-8">
         {[1, 2, 3, 4].map(s => (
           <div key={s} className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#FF5500' : '#111118', color: step >= s ? 'white' : '#666', border: step >= s ? 'none' : '1px solid #1A1A2E' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: step >= s ? '#0B1F3A' : '#111118', color: step >= s ? 'white' : '#666', border: step >= s ? 'none' : '1px solid #1A1A2E' }}>
               {s}
             </div>
-            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#FF5500' : '#1A1A2E') : 'transparent' }} />
+            <div className="h-0.5 flex-1" style={{ backgroundColor: s < 4 ? (step > s ? '#0B1F3A' : '#1A1A2E') : 'transparent' }} />
           </div>
         ))}
       </div>
 
-      {error && <div className="mb-6 p-3 rounded-xl text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
+      {error && <div className="mb-6 p-3 rounded-[3px] text-sm text-red-400" style={{ backgroundColor: '#1A0000', border: '1px solid #3A0000' }}>{error}</div>}
 
       {step === 1 && (
-        <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Informations vehicule</h2>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+          <h2 className="font-bold text-white">Informations véhicule</h2>
 
           <div>
             <label className={labelClass}>Titre <span className="text-red-500">*</span></label>
-            <input type="text" value={form.title} onChange={e => update('title', e.target.value)} placeholder="Ex: Tesla Model 3 - 2022 - Electrique - VTC" className={inputClass} style={inputStyle} />
+            <input type="text" value={form.title} onChange={e => update('title', e.target.value)} placeholder="Ex: Tesla Model 3 - 2022 - Électrique - VTC" className={inputClass} style={inputStyle} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -128,18 +128,18 @@ export default function NewListingPage() {
               </datalist>
             </div>
             <div>
-              <label className={labelClass}>Modele <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Modèle <span className="text-red-500">*</span></label>
               <input type="text" value={form.model} onChange={e => update('model', e.target.value)} placeholder="Ex: 508, Model 3..." className={inputClass} style={inputStyle} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className={labelClass}>Annee <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Année <span className="text-red-500">*</span></label>
               <input type="number" value={form.year} onChange={e => update('year', e.target.value)} min="2000" max="2027" className={inputClass} style={inputStyle} />
             </div>
             <div>
-              <label className={labelClass}>Kilometrage <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Kilométrage <span className="text-red-500">*</span></label>
               <input type="number" value={form.mileage} onChange={e => update('mileage', e.target.value)} placeholder="42000" className={inputClass} style={inputStyle} />
             </div>
             <div>
@@ -152,9 +152,9 @@ export default function NewListingPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Energie <span className="text-red-500">*</span></label>
+              <label className={labelClass}>Énergie <span className="text-red-500">*</span></label>
               <select value={form.fuelType} onChange={e => update('fuelType', e.target.value)} className={inputClass} style={inputStyle}>
-                <option value="electric" style={{ backgroundColor: '#111118' }}>Electrique</option>
+                <option value="electric" style={{ backgroundColor: '#111118' }}>Électrique</option>
                 <option value="hybrid" style={{ backgroundColor: '#111118' }}>Hybride</option>
                 <option value="diesel" style={{ backgroundColor: '#111118' }}>Diesel</option>
                 <option value="gasoline" style={{ backgroundColor: '#111118' }}>Essence</option>
@@ -180,24 +180,24 @@ export default function NewListingPage() {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl" style={{ backgroundColor: '#001A0A', border: '1px solid #003A15' }}>
+          <div className="p-4 rounded-[3px]" style={{ backgroundColor: '#001A0A', border: '1px solid #003A15' }}>
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={form.vtcCompliant} onChange={e => update('vtcCompliant', e.target.checked)} className="w-4 h-4 rounded" />
               <div>
-                <p className="text-sm font-medium text-green-400">Vehicule conforme VTC</p>
-                <p className="text-xs mt-0.5" style={{ color: '#2A7A40' }}>Cochez si le vehicule repond aux criteres VTC</p>
+                <p className="text-sm font-medium text-green-400">Véhicule conforme VTC</p>
+                <p className="text-xs mt-0.5" style={{ color: '#2A7A40' }}>Cochez si le véhicule repond aux criteres VTC</p>
               </div>
             </label>
           </div>
 
-          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="w-full text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#FF5500' }}>
+          <button onClick={() => setStep(2)} disabled={!form.title || !form.brand || !form.model || !form.mileage || !form.locationCity} className="w-full text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90" style={{ backgroundColor: '#0B1F3A' }}>
             Suivant →
           </button>
         </div>
       )}
 
       {step === 2 && (
-        <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
           <h2 className="font-bold text-white">Offre commerciale</h2>
 
           <div>
@@ -209,8 +209,8 @@ export default function NewListingPage() {
                 { type: 'rent', dur: 'loa', label: 'LOA', active: isLOA },
               ].map(btn => (
                 <button key={btn.label} type="button" onClick={() => { update('listingType', btn.type); update('rentDuration', btn.dur) }}
-                  className="p-3 rounded-xl border-2 text-sm font-medium transition-all"
-                  style={{ borderColor: btn.active ? '#FF5500' : '#1A1A2E', backgroundColor: btn.active ? '#1A0800' : '#0A0A0F', color: btn.active ? '#FF5500' : '#666' }}>
+                  className="p-3 rounded-[3px] border-2 text-sm font-medium transition-all"
+                  style={{ borderColor: btn.active ? '#0B1F3A' : '#1A1A2E', backgroundColor: btn.active ? '#1A0800' : '#0A0A0F', color: btn.active ? '#0B1F3A' : '#666' }}>
                   {btn.label}
                 </button>
               ))}
@@ -235,8 +235,8 @@ export default function NewListingPage() {
           </div>
 
           {isLOA && (
-            <div className="space-y-4 p-4 rounded-xl" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
-              <p className="text-sm font-bold" style={{ color: '#FF5500' }}>Conditions LOA</p>
+            <div className="space-y-4 p-4 rounded-[3px]" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
+              <p className="text-sm font-bold" style={{ color: '#0B1F3A' }}>Conditions LOA</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Acompte (EUR) <span className="text-red-500">*</span></label>
@@ -251,7 +251,7 @@ export default function NewListingPage() {
                 {[
                   { field: 'loaAssurance', label: 'Assurance incluse', val: form.loaAssurance },
                   { field: 'loaAssistant', label: 'Assistant inclus', val: form.loaAssistant },
-                  { field: 'loaVehiculeRelais', label: 'Vehicule de relais', val: form.loaVehiculeRelais },
+                  { field: 'loaVehiculeRelais', label: 'Véhicule de relais', val: form.loaVehiculeRelais },
                 ].map(item => (
                   <div key={item.field}>
                     <label className={labelClass}>{item.label}</label>
@@ -259,7 +259,7 @@ export default function NewListingPage() {
                       {['oui', 'non'].map(v => (
                         <button key={v} type="button" onClick={() => update(item.field, v)}
                           className="flex-1 py-2 rounded-lg text-sm font-medium border transition-all capitalize"
-                          style={{ backgroundColor: item.val === v ? '#FF5500' : '#111118', borderColor: item.val === v ? '#FF5500' : '#1A1A2E', color: item.val === v ? 'white' : '#666' }}>
+                          style={{ backgroundColor: item.val === v ? '#0B1F3A' : '#111118', borderColor: item.val === v ? '#0B1F3A' : '#1A1A2E', color: item.val === v ? 'white' : '#666' }}>
                           {v.charAt(0).toUpperCase() + v.slice(1)}
                         </button>
                       ))}
@@ -272,29 +272,29 @@ export default function NewListingPage() {
 
           <div>
             <label className={labelClass}>Description <span className="text-red-500">*</span></label>
-            <textarea value={form.description} onChange={e => update('description', e.target.value)} rows={6} placeholder="Decrivez l'etat du vehicule, l'historique d'entretien, les options..." className={inputClass + ' resize-none'} style={inputStyle} />
+            <textarea value={form.description} onChange={e => update('description', e.target.value)} rows={6} placeholder="Decrivez l'etat du véhicule, l'historique d'entretien, les options..." className={inputClass + ' resize-none'} style={inputStyle} />
             <p className="text-xs text-gray-600 mt-1">{form.description.length} / 2000 caracteres</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
-            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>Suivant →</button>
+            <button onClick={() => setStep(1)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
+            <button onClick={() => setStep(3)} disabled={!form.price || !form.description || (isLOA && (!form.loaAcompte || !form.loaDuree))} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>Suivant →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
           <h2 className="font-bold text-white">Verification et publication</h2>
 
-          <div className="p-4 rounded-xl space-y-2 text-sm" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
+          <div className="p-4 rounded-[3px] space-y-2 text-sm" style={{ backgroundColor: '#1A0800', border: '1px solid #3A1500' }}>
             {[
               ['Titre', form.title],
-              ['Vehicule', `${form.brand} ${form.model} ${form.year}`],
-              ['Kilometrage', `${parseInt(form.mileage || '0').toLocaleString()} km`],
+              ['Véhicule', `${form.brand} ${form.model} ${form.year}`],
+              ['Kilométrage', `${parseInt(form.mileage || '0').toLocaleString()} km`],
               ['Type', form.listingType === 'sale' ? 'Vente' : isLOA ? 'LOA' : 'Location'],
               ['Prix', `${parseFloat(form.price || '0').toLocaleString()} EUR${isLOA ? '/mois' : ''}`],
-              ...(isLOA ? [['Acompte', `${form.loaAcompte} EUR`], ['Duree', `${form.loaDuree} mois`], ['Assurance', form.loaAssurance], ['Assistant', form.loaAssistant], ['Vehicule de relais', form.loaVehiculeRelais]] : []),
+              ...(isLOA ? [['Acompte', `${form.loaAcompte} EUR`], ['Duree', `${form.loaDuree} mois`], ['Assurance', form.loaAssurance], ['Assistant', form.loaAssistant], ['Véhicule de relais', form.loaVehiculeRelais]] : []),
               ['VTC', form.vtcCompliant ? 'Oui' : 'Non'],
               ['Ville', form.locationCity],
             ].map(([label, value]) => (
@@ -305,14 +305,14 @@ export default function NewListingPage() {
             ))}
           </div>
 
-          <div className="p-4 rounded-xl" style={{ backgroundColor: '#001020', border: '1px solid #002040' }}>
+          <div className="p-4 rounded-[3px]" style={{ backgroundColor: '#001020', border: '1px solid #002040' }}>
             <p className="text-sm font-medium text-blue-400">Information importante</p>
             <p className="text-xs mt-1" style={{ color: '#1A4A7A' }}>Votre annonce sera verifiee par notre equipe avant d'etre publiee. Vous serez notifie sous 24h.</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
-            <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#FF5500' }}>
+            <button onClick={() => setStep(2)} className="flex-1 py-2.5 rounded-[3px] text-sm font-medium text-gray-400 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>← Retour</button>
+            <button onClick={handleSubmit} disabled={loading} className="flex-1 text-white py-2.5 rounded-[3px] text-sm font-bold disabled:opacity-50 transition-all" style={{ backgroundColor: '#0B1F3A' }}>
               {loading ? 'Creation...' : 'Continuer →'}
             </button>
           </div>
@@ -320,11 +320,11 @@ export default function NewListingPage() {
       )}
 
       {step === 4 && listingId && (
-        <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
-          <h2 className="font-bold text-white">Photos du vehicule</h2>
+        <div className="rounded-[4px] p-6 space-y-4" style={{ backgroundColor: '#111118', border: '1px solid #1A1A2E' }}>
+          <h2 className="font-bold text-white">Photos du véhicule</h2>
           <p className="text-sm text-gray-500">Ajoutez au minimum 3 photos. La premiere sera la photo principale.</p>
           <PhotoUploader listingId={listingId} onComplete={() => router.push(`/annonces/${listingId}`)} />
-          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-xl text-sm text-gray-500 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
+          <button onClick={() => router.push(`/annonces/${listingId}`)} className="w-full py-2.5 rounded-[3px] text-sm text-gray-500 transition-all" style={{ backgroundColor: '#0A0A0F', border: '1px solid #1A1A2E' }}>
             Passer cette etape (photos plus tard)
           </button>
         </div>

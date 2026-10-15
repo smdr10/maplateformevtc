@@ -16,7 +16,7 @@ const COLUMNS = [
     links: [
       { href: '/services', label: 'Garages, assureurs, formations' },
       { href: '/services/new', label: 'Référencer mon activité' },
-      { href: '/abonnement', label: 'Packs Standard, Pro et Flotte' },
+      { href: '/#packs', label: 'Packs Standard, Pro et Flotte' },
       { href: '/profil/certification', label: 'Certification des pros' },
     ],
   },

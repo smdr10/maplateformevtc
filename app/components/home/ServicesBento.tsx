@@ -102,7 +102,7 @@ export default function ServicesBento() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/register" className="btn btn-brand">Créer un compte pro</Link>
-            <Link href="/abonnement" className="btn border-white/20 bg-white/10 text-white hover:bg-white/20">Voir les packs</Link>
+            <Link href="/#packs" className="btn border-white/20 bg-white/10 text-white hover:bg-white/20">Voir les packs</Link>
           </div>
         </div>
       </motion.div>

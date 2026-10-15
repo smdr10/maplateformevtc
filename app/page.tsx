@@ -8,6 +8,7 @@ import { ListingCard, CardSkeleton, SectionHead, CardListing } from './component
 import Hero from './components/home/Hero'
 import HowItWorks from './components/home/HowItWorks'
 import ServicesBento from './components/home/ServicesBento'
+import PlansSection from './components/home/PlansSection'
 
 interface Review {
   id: string
@@ -88,6 +89,7 @@ export default function HomePage() {
 
       <HowItWorks />
       <ServicesBento />
+      <PlansSection />
 
       {/* Avis (uniquement de vrais avis publies) */}
       {reviews.length > 0 && (

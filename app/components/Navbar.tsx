@@ -26,6 +26,7 @@ const NAV_LINKS = [
   { href: '/annonces?type=rent&rentDuration=week', label: 'Louer' },
   { href: '/annonces?rentDuration=loa', label: 'LOA' },
   { href: '/services', label: 'Services pros' },
+  { href: '/#packs', label: 'Packs' },
 ]
 
 const MENU_LINKS = [
@@ -134,7 +135,7 @@ export default function Navbar() {
         <nav aria-label="Rubriques" className="ml-4 hidden items-center lg:flex" onMouseLeave={() => setHovered(null)}>
           {NAV_LINKS.map(item => (
             <Link key={item.href} href={item.href} onMouseEnter={() => setHovered(item.href)}
-              className="relative rounded-full px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink">
+              className="relative whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-ink">
               {hovered === item.href && (
                 <motion.span layoutId="nav-hover" className="absolute inset-0 rounded-full bg-ink/[0.06]" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />
               )}
@@ -143,13 +144,13 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <form onSubmit={handleSearch} className="relative ml-auto hidden w-64 md:block xl:w-80">
+        <form onSubmit={handleSearch} className="relative ml-auto hidden w-64 xl:block 2xl:w-80">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-mute" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un véhicule…" aria-label="Rechercher un véhicule"
             className="w-full rounded-full border border-rule bg-white/90 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-brand focus:shadow-[0_0_0_4px_rgb(255_85_0_/_0.12)]" />
         </form>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 xl:ml-0">
           {loading ? (
             <div className="h-10 w-28 animate-pulse rounded-full bg-rule" />
           ) : user ? (
@@ -218,8 +219,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-semibold hover:bg-ink/[0.06] sm:block">Se connecter</Link>
-              <Link href="/register" className="btn btn-brand !py-2.5 text-sm">Créer un compte</Link>
+              <Link href="/login" className="hidden whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold hover:bg-ink/[0.06] sm:block">Se connecter</Link>
+              <Link href="/register" className="btn btn-brand whitespace-nowrap !py-2.5 text-sm">Créer un compte</Link>
             </>
           )}
         </div>

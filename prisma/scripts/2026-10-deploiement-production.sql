@@ -1,6 +1,6 @@
 -- ============================================================
--- MISE A JOUR DE LA BASE DE PRODUCTION - octobre 2026
--- A executer UNE SEULE FOIS dans l'editeur SQL de l'hebergeur, AVANT le deploiement du code.
+-- MISE A JOUR DE LA BASE DE PRODUCTION (Supabase) - octobre 2026
+-- A executer UNE SEULE FOIS dans Supabase > SQL Editor, AVANT le deploiement du code.
 -- Uniquement des ajouts : aucune table ni colonne supprimee.
 -- Faire une sauvegarde de la base avant.
 -- ============================================================
@@ -36,7 +36,7 @@ CREATE TYPE "AiVerdict" AS ENUM ('compliant', 'doubtful', 'non_compliant');
 CREATE TYPE "AdminDecision" AS ENUM ('approved', 'rejected');
 
 -- CreateEnum
-CREATE TYPE "PlanTier" AS ENUM ('standard', 'pro');
+CREATE TYPE "PlanTier" AS ENUM ('standard', 'pro', 'flotte');
 
 -- CreateEnum
 CREATE TYPE "BillingInterval" AS ENUM ('month', 'year');
@@ -49,7 +49,13 @@ ALTER TABLE "users" ADD COLUMN     "account_type" "AccountType" NOT NULL DEFAULT
 ADD COLUMN     "plan_choice_at" TIMESTAMPTZ;
 
 -- AlterTable
-ALTER TABLE "listings" ADD COLUMN     "priority_review" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "listings" ADD COLUMN     "available_from" DATE,
+ADD COLUMN     "deposit_amount" DECIMAL(10,2),
+ADD COLUMN     "driver_requirements" VARCHAR(500),
+ADD COLUMN     "included_km_per_week" INTEGER,
+ADD COLUMN     "insurance_included" BOOLEAN,
+ADD COLUMN     "min_rental_weeks" SMALLINT,
+ADD COLUMN     "priority_review" BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
 ALTER TABLE "messages" ADD COLUMN     "service_id" UUID,
@@ -134,6 +140,32 @@ CREATE TABLE "subscriptions" (
     CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "listing_daily_stats" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "listing_id" UUID NOT NULL,
+    "day" DATE NOT NULL,
+    "views" INTEGER NOT NULL DEFAULT 0,
+    "contacts" INTEGER NOT NULL DEFAULT 0,
+    "favorites" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "listing_daily_stats_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "search_events" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "city" VARCHAR(100),
+    "listing_type" "ListingType",
+    "rent_duration" "RentDuration",
+    "fuel_type" "FuelType",
+    "query" VARCHAR(100),
+    "results_count" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "search_events_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "companies_user_id_key" ON "companies"("user_id");
 
@@ -162,6 +194,18 @@ CREATE UNIQUE INDEX "subscriptions_stripe_subscription_id_key" ON "subscriptions
 CREATE INDEX "subscriptions_status_idx" ON "subscriptions"("status");
 
 -- CreateIndex
+CREATE INDEX "listing_daily_stats_day_idx" ON "listing_daily_stats"("day");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "listing_daily_stats_listing_id_day_key" ON "listing_daily_stats"("listing_id", "day");
+
+-- CreateIndex
+CREATE INDEX "search_events_created_at_idx" ON "search_events"("created_at");
+
+-- CreateIndex
+CREATE INDEX "search_events_city_idx" ON "search_events"("city");
+
+-- CreateIndex
 CREATE INDEX "messages_service_id_idx" ON "messages"("service_id");
 
 -- AddForeignKey
@@ -182,7 +226,19 @@ ALTER TABLE "verification_reviews" ADD CONSTRAINT "verification_reviews_admin_id
 -- AddForeignKey
 ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- 3. Reprise des donnees
+-- AddForeignKey
+ALTER TABLE "listing_daily_stats" ADD CONSTRAINT "listing_daily_stats_listing_id_fkey" FOREIGN KEY ("listing_id") REFERENCES "listings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 3. Securite Supabase : les nouvelles tables ne sont pas lisibles via l'API publique
+--    (le site s'y connecte avec le role proprietaire, non concerne par RLS)
+ALTER TABLE "companies" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "verification_documents" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "verification_reviews" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "subscriptions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "listing_daily_stats" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "search_events" ENABLE ROW LEVEL SECURITY;
+
+-- 4. Reprise des donnees
 UPDATE users SET account_type = 'professional' WHERE role = 'pro';
 
 INSERT INTO companies (user_id, legal_name, updated_at)
